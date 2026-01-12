@@ -75,14 +75,6 @@ fun ProfileScreen(
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Student",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
         Spacer(modifier = Modifier.height(48.dp))
 
         Card(
