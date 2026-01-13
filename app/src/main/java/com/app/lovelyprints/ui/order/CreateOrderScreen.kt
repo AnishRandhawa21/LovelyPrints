@@ -1,6 +1,10 @@
 package com.app.lovelyprints.ui.order
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -35,30 +39,43 @@ fun CreateOrderScreen(
 
     val context = LocalContext.current
 
+    // Safely extract Activity
     val activity = remember(context) {
-        var ctx = context
-        while (ctx is android.content.ContextWrapper) {
+        var ctx: Context = context
+        while (ctx is ContextWrapper) {
             if (ctx is Activity) return@remember ctx
             ctx = ctx.baseContext
         }
         null
     }
 
+    /* ---------------- FILE PICKER ---------------- */
 
     val filePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri ?: return@rememberLauncherForActivityResult
+
+            val fileName = getFileName(context, uri)
             val input = context.contentResolver.openInputStream(uri)
-            val file = File(context.cacheDir, "document.pdf")
+            val file = File(context.cacheDir, fileName)
+
             input?.use { inp ->
-                FileOutputStream(file).use { out -> inp.copyTo(out) }
+                FileOutputStream(file).use { out ->
+                    inp.copyTo(out)
+                }
             }
-            viewModel.setFile(file)
+
+            // ✅ ONE call — ViewModel handles file + page count
+            viewModel.setFileAndReadPages(context, file)
         }
+
+    /* ---------------- NAVIGATION ---------------- */
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onOrderSuccess()
     }
+
+    /* ---------------- UI STATE ---------------- */
 
     when (uiState.currentStep) {
 
@@ -72,15 +89,12 @@ fun CreateOrderScreen(
                 onPaperTypeSelect = viewModel::setPaperType,
                 onColorModeSelect = viewModel::setColorMode,
                 onFinishTypeSelect = viewModel::setFinishType,
-                onPageCountChange = viewModel::setPageCount,
                 onCopiesChange = viewModel::setCopies,
                 onOrientationChange = viewModel::setOrientation,
                 onUrgentChange = viewModel::setUrgent,
                 onSubmit = {
-                    if (activity == null) {
-                        // show error instead of crashing
-                        return@SelectOptionsContent
-                    }
+                    if (activity == null) return@SelectOptionsContent
+
                     viewModel.submitOrder { razorpayOrderId, amount ->
                         startRazorpayPayment(
                             activity = activity,
@@ -112,6 +126,8 @@ fun CreateOrderScreen(
             SuccessScreen(onOrderSuccess)
     }
 
+    /* ---------------- ERROR ---------------- */
+
     uiState.error?.let {
         AlertDialog(
             onDismissRequest = {},
@@ -125,7 +141,7 @@ fun CreateOrderScreen(
 }
 
 /* -------------------------------------------------- */
-/* ---------------- SELECT OPTIONS ------------------- */
+/* ---------------- SELECT OPTIONS -------------------*/
 /* -------------------------------------------------- */
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,7 +152,6 @@ fun SelectOptionsContent(
     onPaperTypeSelect: (PaperType) -> Unit,
     onColorModeSelect: (ColorMode) -> Unit,
     onFinishTypeSelect: (FinishType) -> Unit,
-    onPageCountChange: (Int) -> Unit,
     onCopiesChange: (Int) -> Unit,
     onOrientationChange: (String) -> Unit,
     onUrgentChange: (Boolean) -> Unit,
@@ -153,7 +168,17 @@ fun SelectOptionsContent(
         Spacer(Modifier.height(16.dp))
 
         Button(onClick = onFileSelect, modifier = Modifier.fillMaxWidth()) {
-            Text(uiState.selectedFile?.name ?: "Select PDF")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(uiState.selectedFile?.name ?: "Select PDF")
+
+                if (uiState.pageCount > 0) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Pages detected: ${uiState.pageCount}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
         }
 
         Spacer(Modifier.height(16.dp))
@@ -174,7 +199,6 @@ fun SelectOptionsContent(
             onSelect = onColorModeSelect
         )
 
-
         DropdownSection(
             label = "Finish Type",
             selected = uiState.selectedFinishType?.name ?: "",
@@ -183,16 +207,19 @@ fun SelectOptionsContent(
             onSelect = onFinishTypeSelect
         )
 
-
         Spacer(Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+            // 🔒 Pages locked (auto-detected)
             OutlinedTextField(
                 value = uiState.pageCount.toString(),
-                onValueChange = { it.toIntOrNull()?.let(onPageCountChange) },
+                onValueChange = {},
+                readOnly = true,
                 label = { Text("Pages") },
                 modifier = Modifier.weight(1f)
             )
+
             OutlinedTextField(
                 value = uiState.copies.toString(),
                 onValueChange = { it.toIntOrNull()?.let(onCopiesChange) },
@@ -206,8 +233,9 @@ fun SelectOptionsContent(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Urgent Order")
+        )
+        {
+            Text("Urgent Order \n ₹10")
             Switch(uiState.isUrgent, onUrgentChange)
         }
 
@@ -331,4 +359,19 @@ fun startRazorpayPayment(
     } catch (e: Exception) {
         onError(e.message ?: "Payment failed")
     }
+}
+
+/* -------------------------------------------------- */
+/* ---------------- FILE NAME HELPER ----------------- */
+/* -------------------------------------------------- */
+
+private fun getFileName(context: Context, uri: Uri): String {
+    val cursor = context.contentResolver.query(uri, null, null, null, null)
+    cursor?.use {
+        val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (it.moveToFirst()) {
+            return it.getString(nameIndex)
+        }
+    }
+    return "document.pdf"
 }

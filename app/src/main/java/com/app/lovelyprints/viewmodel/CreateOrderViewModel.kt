@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
+import android.content.Context
+import com.app.lovelyprints.utils.PdfUtils
 
 /* ---------------- UI STATE ---------------- */
 
@@ -121,6 +123,7 @@ class CreateOrderViewModel(
         _uiState.value = _uiState.value.copy(pageCount = count)
     }
 
+
     fun setCopies(copies: Int) {
         _uiState.value = _uiState.value.copy(copies = copies)
     }
@@ -135,6 +138,26 @@ class CreateOrderViewModel(
 
     /* ---------------- ORDER FLOW ---------------- */
 
+    fun setFileAndReadPages(context: Context, file: File) {
+        // 1️⃣ save file
+        _uiState.value = _uiState.value.copy(selectedFile = file)
+
+        // 2️⃣ read pages safely
+        viewModelScope.launch {
+            try {
+                val pages = PdfUtils.getPdfPageCount(context, file)
+
+                _uiState.value = _uiState.value.copy(
+                    pageCount = pages
+                )
+
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    error = "Failed to read PDF pages"
+                )
+            }
+        }
+    }
     fun submitOrder(onPaymentRequired: (String, Int) -> Unit) {
         viewModelScope.launch {
 
@@ -284,3 +307,4 @@ class CreateOrderViewModel(
         }
     }
 }
+
