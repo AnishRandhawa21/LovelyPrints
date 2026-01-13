@@ -1,5 +1,6 @@
 package com.app.lovelyprints.ui.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -7,10 +8,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.app.lovelyprints.R
 import com.app.lovelyprints.viewmodel.AuthViewModel
 import com.app.lovelyprints.viewmodel.AuthViewModelFactory
 
@@ -32,112 +36,149 @@ fun SignupScreen(
             onSignupSuccess()
         }
     }
+    Box(modifier = Modifier.fillMaxSize()) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Card(
+        Image(
+            painter = painterResource(R.drawable.background1_2),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize()
+        )
+
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            ),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            )
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .padding(8.dp),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
             ) {
-                Text(
-                    text = "Create Account",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
-
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = {
-                        name = it
-                        viewModel.clearError()
-                    },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = {
-                        email = it
-                        viewModel.clearError()
-                    },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    singleLine = true
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = {
-                        password = it
-                        viewModel.clearError()
-                    },
-                    label = { Text("Password") },
-                    modifier = Modifier.fillMaxWidth(),
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    singleLine = true
-                )
-
-                if (uiState.error != null) {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = { viewModel.signup(name, email, password) },
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                    Image(
+                        painter = painterResource(id = R.drawable.lovely_prints),
+                        contentDescription = "Logo",
+                        Modifier.size(150.dp)
+                    )
+                    Text(
+                        text = "Sign up",
+                        style = MaterialTheme.typography.headlineMedium,
+                        modifier = Modifier.padding(bottom = 32.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = {
+                            name = it
+                            viewModel.clearError()
+                        },
+                        label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFF9500),   // darker orange
+                            unfocusedBorderColor = Color(0xFFFF9500), // normal orange
+                            focusedLabelColor = Color(0xFFFF9500),
+                            cursorColor = Color(0xFFFF9500)
                         )
-                    } else {
-                        Text("Sign Up")
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = {
+                            email = it
+                            viewModel.clearError()
+                        },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFF9500),   // darker orange
+                            unfocusedBorderColor = Color(0xFFFF9500), // normal orange
+                            focusedLabelColor = Color(0xFFFF9500),
+                            cursorColor = Color(0xFFFF9500)
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                            viewModel.clearError()
+                        },
+                        label = { Text("Password") },
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFF9500),   // darker orange
+                            unfocusedBorderColor = Color(0xFFFF9500), // normal orange
+                            focusedLabelColor = Color(0xFFFF9500),
+                            cursorColor = Color(0xFFFF9500)
+                        )
+                    )
+
+                    if (uiState.error != null) {
+                        Text(
+                            text = uiState.error!!,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                TextButton(onClick = onNavigateToLogin,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = Color(0xFF000000)
-                    )) {
-                    Text("Already have an account? Login")
+                    Button(
+                        onClick = { viewModel.signup(name, email, password) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF006AFF)
+                        )
+                    ) {
+                        if (uiState.isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Sign Up")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(
+                        onClick = onNavigateToLogin,
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = Color(0xFF000000)
+                        )
+                    ) {
+                        Text("Already have an account? Login")
+                    }
                 }
             }
         }

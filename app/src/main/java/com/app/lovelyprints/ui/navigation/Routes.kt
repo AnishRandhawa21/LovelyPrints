@@ -10,4 +10,5 @@ sealed class Routes(val route: String) {
     object CreateOrder : Routes("create_order/{shopId}") {
         fun createRoute(shopId: String) = "create_order/$shopId"
     }
+
 }

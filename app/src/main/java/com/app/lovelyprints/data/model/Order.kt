@@ -26,9 +26,15 @@ data class CreateOrderResponse(
 
 /* ================= UPLOAD ================= */
 
+
 data class UploadResponse(
+    val data: UploadData
+)
+
+data class UploadData(
     val fileKey: String
 )
+
 
 /* ================= ORDERS ================= */
 

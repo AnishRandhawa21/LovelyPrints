@@ -13,7 +13,8 @@ interface OrderApi {
     @POST("students/orders")
     suspend fun createOrder(
         @Body request: CreateOrderRequest
-    ): Response<CreateOrderResponse>
+    ): Response<ApiResponse<CreateOrderResponse>>
+
 
     @Multipart
     @POST("files/upload")

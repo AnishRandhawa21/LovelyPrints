@@ -50,37 +50,51 @@ class CreateOrderViewModel(
     private val _uiState = MutableStateFlow(CreateOrderUiState())
     val uiState: StateFlow<CreateOrderUiState> = _uiState.asStateFlow()
 
-    /** ✅ REQUIRED for payment verification */
     private var currentOrderId: String? = null
 
     init {
         loadPrintOptions()
     }
 
+    /* ---------------- LOAD OPTIONS ---------------- */
+
     private fun loadPrintOptions() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            try {
+                _uiState.value = _uiState.value.copy(isLoading = true)
 
-            when (val result = shopRepository.getPrintOptions(shopId)) {
-                is Result.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        printOptions = result.data,
-                        selectedPaperType = result.data.paperTypes.firstOrNull(),
-                        selectedColorMode = result.data.colorModes.firstOrNull(),
-                        selectedFinishType = result.data.finishTypes.firstOrNull(),
-                        currentStep = OrderStep.SELECT_OPTIONS
-                    )
+                when (val result = shopRepository.getPrintOptions(shopId)) {
+
+                    is Result.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            printOptions = result.data,
+                            selectedPaperType = result.data.paperTypes?.firstOrNull(),
+                            selectedColorMode = result.data.colorModes?.firstOrNull(),
+                            selectedFinishType = result.data.finishTypes?.firstOrNull(),
+                            currentStep = OrderStep.SELECT_OPTIONS
+                        )
+                    }
+
+                    is Result.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = result.message,
+                            currentStep = OrderStep.SELECT_OPTIONS
+                        )
+                    }
+
+                    is Result.Loading -> {
+                        _uiState.value = _uiState.value.copy(isLoading = true)
+                    }
                 }
 
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.message
-                    )
-                }
-
-                else -> {}
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load print options",
+                    currentStep = OrderStep.SELECT_OPTIONS
+                )
             }
         }
     }
@@ -123,9 +137,28 @@ class CreateOrderViewModel(
 
     fun submitOrder(onPaymentRequired: (String, Int) -> Unit) {
         viewModelScope.launch {
+
             val state = _uiState.value
+
+            /* ---------- FILE CHECK ---------- */
             val file = state.selectedFile ?: run {
-                _uiState.value = state.copy(error = "Please select a file")
+                _uiState.value = state.copy(
+                    isLoading = false,
+                    error = "Please select a file"
+                )
+                return@launch
+            }
+
+            /* ---------- OPTIONS CHECK ---------- */
+            val paper = state.selectedPaperType
+            val color = state.selectedColorMode
+            val finish = state.selectedFinishType
+
+            if (paper == null || color == null || finish == null) {
+                _uiState.value = state.copy(
+                    isLoading = false,
+                    error = "Please select print options first"
+                )
                 return@launch
             }
 
@@ -134,7 +167,7 @@ class CreateOrderViewModel(
                 currentStep = OrderStep.CREATING_ORDER
             )
 
-            /* 1️⃣ Create order */
+            /* 1️⃣ CREATE ORDER */
             val orderResult = orderRepository.createOrder(
                 shopId = shopId,
                 description = "Print order",
@@ -145,7 +178,8 @@ class CreateOrderViewModel(
             if (orderResult !is Result.Success) {
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (orderResult as Result.Error).message
+                    error = (orderResult as Result.Error).message,
+                    currentStep = OrderStep.SELECT_OPTIONS
                 )
                 return@launch
             }
@@ -153,52 +187,72 @@ class CreateOrderViewModel(
             val orderId = orderResult.data.id
             currentOrderId = orderId
 
-            /* 2️⃣ Upload file */
+            /* 2️⃣ UPLOAD FILE */
             _uiState.value = state.copy(currentStep = OrderStep.UPLOADING)
 
             val uploadResult = orderRepository.uploadFile(file)
             if (uploadResult !is Result.Success) {
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (uploadResult as Result.Error).message
+                    error = (uploadResult as Result.Error).message,
+                    currentStep = OrderStep.SELECT_OPTIONS
                 )
                 return@launch
             }
 
-            /* 3️⃣ Attach document */
+            // 🔥 FIX 3 — FILE KEY SAFETY
+            val fileKey = uploadResult.data.fileKey
+            if (fileKey.isNullOrBlank()) {
+                _uiState.value = state.copy(
+                    isLoading = false,
+                    error = "File upload failed. Please try again.",
+                    currentStep = OrderStep.SELECT_OPTIONS
+                )
+                return@launch
+            }
+
+            /* 3️⃣ ATTACH DOCUMENT */
             val attachResult = orderRepository.attachDocument(
                 orderId = orderId,
-                fileKey = uploadResult.data.fileKey,
+                fileKey = fileKey,
                 fileName = file.name,
                 pageCount = state.pageCount,
                 copies = state.copies,
-                paperTypeId = state.selectedPaperType!!.id,
-                colorModeId = state.selectedColorMode!!.id,
-                finishTypeId = state.selectedFinishType!!.id
+                paperTypeId = paper.id,
+                colorModeId = color.id,
+                finishTypeId = finish.id
             )
 
             if (attachResult !is Result.Success) {
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (attachResult as Result.Error).message
+                    error = (attachResult as Result.Error).message,
+                    currentStep = OrderStep.SELECT_OPTIONS
                 )
                 return@launch
             }
 
-            /* 4️⃣ Create payment */
+            /* 4️⃣ CREATE PAYMENT */
             _uiState.value = state.copy(currentStep = OrderStep.PROCESSING_PAYMENT)
 
             val paymentResult = orderRepository.createPayment(orderId)
+
             if (paymentResult is Result.Success) {
-                onPaymentRequired(paymentResult.data.id, paymentResult.data.amount)
+                onPaymentRequired(
+                    paymentResult.data.id,
+                    paymentResult.data.amount
+                )
             } else {
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (paymentResult as Result.Error).message
+                    error = (paymentResult as Result.Error).message,
+                    currentStep = OrderStep.SELECT_OPTIONS
                 )
             }
         }
     }
+
+    /* ---------------- VERIFY PAYMENT ---------------- */
 
     fun verifyPayment(
         razorpayOrderId: String,

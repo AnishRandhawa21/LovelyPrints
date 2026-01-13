@@ -97,7 +97,8 @@ fun AppNavHost(
             route = Routes.CreateOrder.route,
             arguments = listOf(navArgument("shopId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val shopId = backStackEntry.arguments?.getString("shopId") ?: return@composable
+            val shopId = backStackEntry.arguments?.getString("shopId")
+                ?: return@composable
             CreateOrderScreen(
                 shopId = shopId,
                 viewModelFactory = CreateOrderViewModelFactory(

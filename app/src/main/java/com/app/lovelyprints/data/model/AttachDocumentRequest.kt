@@ -3,7 +3,6 @@ package com.app.lovelyprints.data.model
 import com.google.gson.annotations.SerializedName
 
 data class AttachDocumentRequest(
-
     @SerializedName("fileKey")
     val fileKey: String,
 

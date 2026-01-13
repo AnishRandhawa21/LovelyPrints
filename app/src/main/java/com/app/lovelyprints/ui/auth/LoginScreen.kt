@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,7 +42,14 @@ fun LoginScreen(
             // Error is shown in UI, will be cleared on next interaction
         }
     }
+    Box(modifier = Modifier.fillMaxSize()) {
 
+        Image(
+            painter = painterResource(R.drawable.background1_2),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.matchParentSize()
+        )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -77,8 +85,8 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Lovely Prints",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "Login",
+            style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(bottom = 32.dp)
         )
 
@@ -91,7 +99,13 @@ fun LoginScreen(
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFFF9500),   // darker orange
+                unfocusedBorderColor = Color(0xFFFF9500), // normal orange
+                focusedLabelColor = Color(0xFFFF9500),
+                cursorColor = Color(0xFFFF9500)
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -106,7 +120,13 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFFF9500),   // darker orange
+                unfocusedBorderColor = Color(0xFFFF9500), // normal orange
+                focusedLabelColor = Color(0xFFFF9500),
+                cursorColor = Color(0xFFFF9500),
+            )
         )
 
         if (uiState.error != null) {
@@ -139,7 +159,7 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFF7C00)
+                containerColor = Color(0xFF006AFF)
             ),
             enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank()
         ) {
@@ -166,5 +186,6 @@ fun LoginScreen(
     }
 
     }
-}
     }
+    }
+}

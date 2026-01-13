@@ -25,43 +25,28 @@ data class Shop(
    PAPER TYPE
 ----------------------------- */
 data class PaperType(
-
-    @SerializedName("id")
     val id: String,
-
-    @SerializedName("name")
     val name: String,
-
     @SerializedName("base_price")
     val basePrice: Int
 )
 
-/* -----------------------------
-   COLOR MODE
------------------------------ */
 data class ColorMode(
-
-    @SerializedName("id")
     val id: String,
-
-    @SerializedName("name")
     val name: String,
-
     @SerializedName("extra_price")
     val extraPrice: Int
 )
 
-/* -----------------------------
-   FINISH TYPE
------------------------------ */
 data class FinishType(
-
-    @SerializedName("id")
     val id: String,
-
-    @SerializedName("name")
     val name: String,
-
     @SerializedName("extra_price")
     val extraPrice: Int
+)
+
+data class ApiResponse<T>(
+    val success: Boolean,
+    val message: String,
+    val data: T
 )

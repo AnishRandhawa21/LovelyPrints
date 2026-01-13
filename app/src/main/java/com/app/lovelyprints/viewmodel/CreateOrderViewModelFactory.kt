@@ -10,10 +10,15 @@ class CreateOrderViewModelFactory(
     private val orderRepository: OrderRepository,
     private val shopId: String
 ) : ViewModelProvider.Factory {
+
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CreateOrderViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return CreateOrderViewModel(shopRepository, orderRepository, shopId) as T
+            return CreateOrderViewModel(
+                shopRepository = shopRepository,
+                orderRepository = orderRepository,
+                shopId = shopId
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

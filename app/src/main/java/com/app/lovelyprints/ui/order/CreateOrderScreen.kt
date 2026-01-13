@@ -34,7 +34,16 @@ fun CreateOrderScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     val context = LocalContext.current
-    val activity = context as Activity
+
+    val activity = remember(context) {
+        var ctx = context
+        while (ctx is android.content.ContextWrapper) {
+            if (ctx is Activity) return@remember ctx
+            ctx = ctx.baseContext
+        }
+        null
+    }
+
 
     val filePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -68,6 +77,10 @@ fun CreateOrderScreen(
                 onOrientationChange = viewModel::setOrientation,
                 onUrgentChange = viewModel::setUrgent,
                 onSubmit = {
+                    if (activity == null) {
+                        // show error instead of crashing
+                        return@SelectOptionsContent
+                    }
                     viewModel.submitOrder { razorpayOrderId, amount ->
                         startRazorpayPayment(
                             activity = activity,

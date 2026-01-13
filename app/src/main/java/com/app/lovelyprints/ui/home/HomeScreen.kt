@@ -104,7 +104,7 @@ fun ShopCard(
                 .padding(16.dp)
         ) {
             Text(
-                text = shop.shopName,   // ✅ FIXED
+                text = shop.shopName,
                 style = MaterialTheme.typography.titleLarge
             )
 

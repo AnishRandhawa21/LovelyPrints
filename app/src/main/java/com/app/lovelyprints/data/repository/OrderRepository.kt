@@ -26,31 +26,54 @@ class OrderRepository(
                     isUrgent = isUrgent
                 )
             )
-            if (response.isSuccessful && response.body() != null)
-                Result.Success(response.body()!!)
-            else
-                Result.Error(response.message() ?: "Failed to create order")
+
+            if (response.isSuccessful && response.body() != null) {
+                val order = response.body()!!.data   // ✅ unwrap here
+                Result.Success(order)
+            } else {
+                Result.Error(
+                    response.errorBody()?.string()
+                        ?: response.message()
+                        ?: "Failed to create order"
+                )
+            }
+
         } catch (e: Exception) {
             Result.Error(e.message ?: "Network error")
         }
     }
 
-    suspend fun uploadFile(file: File): Result<UploadResponse> {
+
+    suspend fun uploadFile(file: File): Result<UploadData> {
         return try {
             val requestFile =
                 file.asRequestBody("application/pdf".toMediaTypeOrNull())
+
             val body =
                 MultipartBody.Part.createFormData("file", file.name, requestFile)
 
             val response = orderApi.uploadFile(body)
-            if (response.isSuccessful && response.body() != null)
-                Result.Success(response.body()!!)
-            else
-                Result.Error(response.message() ?: "Failed to upload file")
+
+            println("UPLOAD CODE = ${response.code()}")
+            println("UPLOAD BODY = ${response.body()}")
+            println("UPLOAD ERROR = ${response.errorBody()?.string()}")
+
+            if (response.isSuccessful && response.body() != null) {
+                Result.Success(response.body()!!.data)
+            } else {
+                Result.Error(
+                    response.errorBody()?.string()
+                        ?: response.message()
+                        ?: "Upload failed"
+                )
+            }
+
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+            e.printStackTrace()
+            Result.Error(e.message ?: "Upload exception")
         }
     }
+
 
     suspend fun attachDocument(
         orderId: String,
