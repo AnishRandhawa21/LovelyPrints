@@ -22,4 +22,24 @@ fun LovelyPrintsTheme(
         typography = Typography,
         content = content
     )
+    Typography(
+        bodyLarge = TextStyle(
+            fontFamily = ImpactFont
+        ),
+        titleLarge = TextStyle(
+            fontFamily = ImpactFont,
+            fontWeight = FontWeight.Bold
+        )
+    )
+    Typography(
+        bodyLarge = TextStyle(
+            fontFamily = Montserrat
+        ),
+        titleLarge = TextStyle(
+            fontFamily = Montserrat,
+            fontWeight = FontWeight.Bold
+        )
+    )
+
+
 }

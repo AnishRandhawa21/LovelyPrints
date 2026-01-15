@@ -2,6 +2,7 @@ package com.app.lovelyprints.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -75,8 +76,9 @@ fun SignupScreen(
                         contentDescription = "Logo",
                         Modifier.size(150.dp)
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Sign up",
+                        text = "Sign-up",
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
@@ -91,10 +93,10 @@ fun SignupScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFF9500),   // darker orange
-                            unfocusedBorderColor = Color(0xFFFF9500), // normal orange
-                            focusedLabelColor = Color(0xFFFF9500),
-                            cursorColor = Color(0xFFFF9500)
+                            focusedBorderColor = Color(0xFFFFA726),   // darker orange
+                            unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
+                            focusedLabelColor = Color(0xFFFFA726),
+                            cursorColor = Color(0xFFFFCC80)
                         )
                     )
 
@@ -111,10 +113,10 @@ fun SignupScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFF9500),   // darker orange
-                            unfocusedBorderColor = Color(0xFFFF9500), // normal orange
-                            focusedLabelColor = Color(0xFFFF9500),
-                            cursorColor = Color(0xFFFF9500)
+                            focusedBorderColor = Color(0xFFFFA726),   // darker orange
+                            unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
+                            focusedLabelColor = Color(0xFFFFA726),
+                            cursorColor = Color(0xFFFFCC80)
                         )
                     )
 
@@ -132,42 +134,79 @@ fun SignupScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFF9500),   // darker orange
-                            unfocusedBorderColor = Color(0xFFFF9500), // normal orange
-                            focusedLabelColor = Color(0xFFFF9500),
-                            cursorColor = Color(0xFFFF9500)
+                            focusedBorderColor = Color(0xFFFFA726),   // darker orange
+                            unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
+                            focusedLabelColor = Color(0xFFFFA726),
+                            cursorColor = Color(0xFFFFCC80)
                         )
                     )
 
                     if (uiState.error != null) {
-                        Text(
-                            text = uiState.error!!,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = MaterialTheme.shapes.small,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp)
+                        ) {
+                            Text(
+                                text = uiState.error!!,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(12.dp),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { viewModel.signup(name, email, password) },
+                        onClick = {
+                            viewModel.signup(name, email, password)
+                        },
+
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
-                        enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank(),
+
+                        // 🎯 Rounded corners for modern look
+                        shape = RoundedCornerShape(12.dp),
+
+                        // 🎯 Natural Material elevation
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 10.dp,
+                            disabledElevation = 0.dp
+                        ),
+
+                        // 🎯 Clean color system
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF006AFF)
-                        )
+                            containerColor = Color(0xFFFF9500),
+                            disabledContainerColor = Color(0xFFFF9500).copy(alpha = 0.4f),
+                            contentColor = Color.White,
+                            disabledContentColor = Color.White.copy(alpha = 0.6f)
+                        ),
+
+                        enabled = !uiState.isLoading &&
+                                name.isNotBlank() &&
+                                email.isNotBlank() &&
+                                password.isNotBlank()
                     ) {
+
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
+                                modifier = Modifier.size(22.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
                             )
                         } else {
-                            Text("Sign Up")
+                            Text(
+                                text = "Sign Up",
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
                     }
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 

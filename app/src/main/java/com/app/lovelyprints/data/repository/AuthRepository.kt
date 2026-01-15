@@ -18,12 +18,18 @@ class AuthRepository(
     private val tokenManager: TokenManager
 ) {
 
+    /* ---------------- LOGIN ---------------- */
+
     suspend fun login(email: String, password: String): Result<LoginResponse> {
         return try {
             val response = authApi.login(LoginRequest(email, password))
 
             if (!response.isSuccessful) {
-                return Result.Error("Login failed: ${response.code()}")
+                return when (response.code()) {
+                    401, 403 -> Result.Error("Invalid email or password")
+                    500 -> Result.Error("Server error. Please try again later.")
+                    else -> Result.Error("Login failed. Please try again.")
+                }
             }
 
             val body = response.body()
@@ -32,7 +38,7 @@ class AuthRepository(
             val token = body.data.session.access_token
             Log.d("AUTH", "SAVING TOKEN = $token")
 
-            // ✅ SAVE ONCE – source of truth
+            // ✅ SAVE TOKEN
             tokenManager.saveToken(token)
 
             tokenManager.saveUserInfo(
@@ -45,9 +51,23 @@ class AuthRepository(
             Result.Success(body)
 
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+
+            val message = when {
+                e.message?.contains("Unable to resolve host", true) == true ->
+                    "Cannot connect to server. Check your internet connection."
+
+                e.message?.contains("timeout", true) == true ->
+                    "Server is taking too long to respond."
+
+                else ->
+                    "Something went wrong. Please try again."
+            }
+
+            Result.Error(message)
         }
     }
+
+    /* ---------------- SIGNUP ---------------- */
 
     suspend fun signup(
         name: String,
@@ -59,16 +79,35 @@ class AuthRepository(
                 SignupRequest(name, email, password)
             )
 
-            if (response.isSuccessful) {
-                Result.Success(Unit)
-            } else {
-                Result.Error("Signup failed: ${response.code()}")
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    409 -> Result.Error("Account already exists with this email.")
+                    400 -> Result.Error("Invalid signup data.")
+                    500 -> Result.Error("Server error. Please try again later.")
+                    else -> Result.Error("Signup failed. Please try again.")
+                }
             }
 
+            Result.Success(Unit)
+
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+
+            val message = when {
+                e.message?.contains("Unable to resolve host", true) == true ->
+                    "Cannot connect to server. Check your internet connection."
+
+                e.message?.contains("timeout", true) == true ->
+                    "Server is taking too long to respond."
+
+                else ->
+                    "Something went wrong. Please try again."
+            }
+
+            Result.Error(message)
         }
     }
+
+    /* ---------------- LOGOUT ---------------- */
 
     suspend fun logout() {
         tokenManager.clearAll()

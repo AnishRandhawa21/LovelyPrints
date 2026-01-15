@@ -28,6 +28,12 @@ class AuthViewModel(
     fun login(email: String, password: String) {
         Log.d("AUTH", "VM LOGIN CALLED")
         viewModelScope.launch {
+            if (email.isBlank() || password.isBlank()) {
+                _uiState.value = AuthUiState(
+                    error = "Email and password cannot be empty"
+                )
+                return@launch
+            }
             _uiState.value = AuthUiState(isLoading = true)
 
             when (val result = authRepository.login(email, password)) {
@@ -38,10 +44,17 @@ class AuthViewModel(
                 }
 
                 is Result.Error -> {
-                    _uiState.value = AuthUiState(error = result.message)
+                    _uiState.value = AuthUiState(
+                        isLoading = false,
+                        error = result.message ?: "Login failed"
+                    )
                 }
-
-                else -> Unit
+                else -> {
+                    _uiState.value = AuthUiState(
+                        isLoading = false,
+                        error = "Unexpected error"
+                    )
+                }
             }
         }
     }

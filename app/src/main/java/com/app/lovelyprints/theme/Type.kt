@@ -1,14 +1,13 @@
 package com.app.lovelyprints.theme
 
-import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.app.lovelyprints.R
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontWeight = FontWeight.Normal,
@@ -28,4 +27,20 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
+)
+
+val ImpactFont = FontFamily(
+    Font(R.font.impact, FontWeight.Normal)
+)
+val Montserrat = FontFamily(
+    Font(R.font.montserrat_black, FontWeight.Black)
+)
+val Bebasneue = FontFamily(
+    Font(R.font.bebasneue_regular, FontWeight.Black)
+)
+val Inter = FontFamily(
+    Font(R.font.intertight_black, FontWeight.Normal)
+)
+val Thunder = FontFamily(
+    Font(R.font.thunder, FontWeight.Normal)
 )

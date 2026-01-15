@@ -3,11 +3,13 @@ package com.app.lovelyprints.ui.auth
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -101,10 +103,10 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFFF9500),   // darker orange
-                unfocusedBorderColor = Color(0xFFFF9500), // normal orange
-                focusedLabelColor = Color(0xFFFF9500),
-                cursorColor = Color(0xFFFF9500)
+                focusedBorderColor = Color(0xFFFFA726),   // darker orange
+                unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
+                focusedLabelColor = Color(0xFFFFA726),
+                cursorColor = Color(0xFFFFCC80)
             )
         )
 
@@ -122,10 +124,10 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFFF9500),   // darker orange
-                unfocusedBorderColor = Color(0xFFFF9500), // normal orange
-                focusedLabelColor = Color(0xFFFF9500),
-                cursorColor = Color(0xFFFF9500),
+                focusedBorderColor = Color(0xFFFFA726),   // darker orange
+                unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
+                focusedLabelColor = Color(0xFFFFA726),
+                cursorColor = Color(0xFFFFCC80),
             )
         )
 
@@ -151,29 +153,55 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
 
-        Button(
-            onClick = {
-                Log.d("AUTH", "LOGIN BUTTON CLICKED")
-                viewModel.login(email, password) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF006AFF)
-            ),
-            enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank()
-        ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Text("Login", color = Color.White)
-            }
-        }
+                Button(
+                    onClick = {
+                        Log.d("AUTH", "LOGIN BUTTON CLICKED")
+                        viewModel.login(email, password)
+                    },
 
-        Spacer(modifier = Modifier.height(16.dp))
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+
+                    // 🎯 Rounded, modern shape
+                    shape = RoundedCornerShape(12.dp),
+
+                    // 🎯 Natural Material elevation (better than colored shadow)
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 10.dp,
+                        disabledElevation = 0.dp
+                    ),
+
+                    // 🎯 Clean color setup
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFF9500),
+                        disabledContainerColor = Color(0xFFFF9500).copy(alpha = 0.4f),
+                        contentColor = Color.White,
+                        disabledContentColor = Color.White.copy(alpha = 0.6f)
+                    ),
+
+                    enabled = !uiState.isLoading &&
+                            email.isNotBlank() &&
+                            password.isNotBlank()
+                ) {
+
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                    } else {
+                        Text(
+                            text = "Login",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+
+
+                Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(
             onClick = onNavigateToSignup,
