@@ -9,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -41,24 +40,29 @@ fun LoginScreen(
 
     LaunchedEffect(uiState.error) {
         if (uiState.error != null) {
-            // Error is shown in UI, will be cleared on next interaction
+            Log.d("AUTH", "Error: ${uiState.error}")
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
 
         Image(
-            painter = painterResource(R.drawable.background1_2),
+            painter = painterResource(R.drawable.background),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.matchParentSize()
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize()
         )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
+
+
+
+        // 🔹 Content layer (respects status bar)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars) // 👈 THIS is the fix
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,7 +71,7 @@ fun LoginScreen(
                 defaultElevation = 4.dp
             ),
             colors = CardDefaults.cardColors(
-                containerColor = Color.White
+                containerColor = Color(0xFF1B1B1E)
             )
         ) {
             Column(
@@ -89,28 +93,34 @@ fun LoginScreen(
         Text(
             text = "Login",
             style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(bottom = 32.dp)
+            modifier = Modifier.padding(bottom = 32.dp),
+            color = Color(0xFFFBFBFB)
         )
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = {
-                email = it
-                viewModel.clearError()
-            },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFFFA726),   // darker orange
-                unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
-                focusedLabelColor = Color(0xFFFFA726),
-                cursorColor = Color(0xFFFFCC80)
-            )
-        )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = {
+                        email = it
+                        viewModel.clearError()
+                    },
+                    label = { Text("Email", color = Color(0xFFFBFBFB)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFFF56E0F),
+                        unfocusedBorderColor = Color(0xFF424048),
+                        focusedLabelColor = Color(0xFFF56E0F),
+                        cursorColor = Color(0xFF424048),
 
-        Spacer(modifier = Modifier.height(16.dp))
+                        // 🔥 THIS is what you need
+                        focusedTextColor = Color(0xFFFBFBFB),
+                        unfocusedTextColor = Color(0xFFFBFBFB)
+                    )
+                )
+
+
+                Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
@@ -118,16 +128,18 @@ fun LoginScreen(
                 password = it
                 viewModel.clearError()
             },
-            label = { Text("Password") },
+            label = { Text("Password",color = Color(0xFFFBFBFB))},
             modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFFFA726),   // darker orange
-                unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
-                focusedLabelColor = Color(0xFFFFA726),
-                cursorColor = Color(0xFFFFCC80),
+                focusedBorderColor = Color(0xFFF56E0F),   // darker orange
+                unfocusedBorderColor = Color(0xFF424048), // normal orange
+                focusedLabelColor = Color(0xFFF56E0F),
+                cursorColor = Color(0xFF424048),
+                focusedTextColor = Color(0xFFFBFBFB),
+                unfocusedTextColor = Color(0xFFFBFBFB)
             )
         )
 
@@ -176,9 +188,9 @@ fun LoginScreen(
                     // 🎯 Clean color setup
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFF9500),
-                        disabledContainerColor = Color(0xFFFF9500).copy(alpha = 0.4f),
+                        disabledContainerColor = Color(0xFFFEAE46),
                         contentColor = Color.White,
-                        disabledContentColor = Color.White.copy(alpha = 0.6f)
+                        disabledContentColor = Color.White.copy(alpha = 0.9f)
                     ),
 
                     enabled = !uiState.isLoading &&
@@ -206,7 +218,7 @@ fun LoginScreen(
         TextButton(
             onClick = onNavigateToSignup,
             colors = ButtonDefaults.textButtonColors(
-                contentColor = Color(0xFF000000)
+                contentColor = Color(0xFFFBFBFB)
             )
         ) {
             Text("Don't have an account? Sign up")

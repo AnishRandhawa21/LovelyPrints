@@ -24,11 +24,19 @@ class OrdersViewModel(
     private val _uiState = MutableStateFlow(OrdersUiState())
     val uiState: StateFlow<OrdersUiState> = _uiState.asStateFlow()
 
-    init {
-        loadOrders()
-    }
+    /** Prevents duplicate API calls */
+    private var isRequestRunning = false
 
+    /**
+     * Load orders for current logged-in user
+     */
     fun loadOrders() {
+
+        // ⛔ avoid duplicate network calls
+        if (isRequestRunning) return
+
+        isRequestRunning = true
+
         viewModelScope.launch {
 
             _uiState.value = OrdersUiState(isLoading = true)
@@ -40,23 +48,44 @@ class OrdersViewModel(
                     val allOrders = result.data.data
 
                     val current =
-                        allOrders.filter { it.status.lowercase() != "completed" }
+                        allOrders.filter {
+                            it.status.lowercase() != "completed"
+                        }
 
                     val history =
-                        allOrders.filter { it.status.lowercase() == "completed" }
+                        allOrders.filter {
+                            it.status.lowercase() == "completed"
+                        }
 
                     _uiState.value = OrdersUiState(
                         currentOrders = current,
-                        orderHistory = history
+                        orderHistory = history,
+                        isLoading = false,
+                        error = null
                     )
                 }
 
                 is Result.Error -> {
-                    _uiState.value = OrdersUiState(error = result.message)
+                    _uiState.value = OrdersUiState(
+                        isLoading = false,
+                        error = result.message
+                    )
                 }
 
-                else -> Unit
+                else -> {
+                    _uiState.value = OrdersUiState(isLoading = false)
+                }
             }
+
+            isRequestRunning = false
         }
+    }
+
+    /**
+     * ✅ MUST be called on logout or account switch
+     */
+    fun clearOrders() {
+        isRequestRunning = false
+        _uiState.value = OrdersUiState()
     }
 }

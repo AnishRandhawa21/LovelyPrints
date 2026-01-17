@@ -40,7 +40,7 @@ fun SignupScreen(
     Box(modifier = Modifier.fillMaxSize()) {
 
         Image(
-            painter = painterResource(R.drawable.background1_2),
+            painter = painterResource(R.drawable.background),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.matchParentSize()
@@ -61,7 +61,7 @@ fun SignupScreen(
                     defaultElevation = 4.dp
                 ),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = Color(0xFF1B1B1E)
                 )
             ) {
                 Column(
@@ -79,6 +79,7 @@ fun SignupScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Sign-up",
+                        color = Color(0xFFFBFBFB),
                         style = MaterialTheme.typography.headlineMedium,
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
@@ -89,14 +90,17 @@ fun SignupScreen(
                             name = it
                             viewModel.clearError()
                         },
-                        label = { Text("Name") },
+                        label = { Text("Name", color = Color(0xFFFBFBFB)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFFA726),   // darker orange
-                            unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
-                            focusedLabelColor = Color(0xFFFFA726),
-                            cursorColor = Color(0xFFFFCC80)
+                            focusedBorderColor = Color(0xFFF56E0F),   // darker orange
+                            unfocusedBorderColor = Color(0xFF424048), // normal orange
+                            focusedLabelColor = Color(0xFFF56E0F),
+                            cursorColor = Color(0xFF424048),
+
+                            focusedTextColor = Color(0xFFFBFBFB),
+                            unfocusedTextColor = Color(0xFFFBFBFB)
                         )
                     )
 
@@ -108,15 +112,18 @@ fun SignupScreen(
                             email = it
                             viewModel.clearError()
                         },
-                        label = { Text("Email") },
+                        label = { Text("Email", color = Color(0xFFFBFBFB)) },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFFA726),   // darker orange
-                            unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
-                            focusedLabelColor = Color(0xFFFFA726),
-                            cursorColor = Color(0xFFFFCC80)
+                            focusedBorderColor = Color(0xFFF56E0F),   // darker orange
+                            unfocusedBorderColor = Color(0xFF424048), // normal orange
+                            focusedLabelColor = Color(0xFFF56E0F),
+                            cursorColor = Color(0xFF424048),
+
+                            focusedTextColor = Color(0xFFFBFBFB),
+                            unfocusedTextColor = Color(0xFFFBFBFB)
                         )
                     )
 
@@ -128,16 +135,19 @@ fun SignupScreen(
                             password = it
                             viewModel.clearError()
                         },
-                        label = { Text("Password") },
+                        label = { Text("Password", color = Color(0xFFFBFBFB))},
                         modifier = Modifier.fillMaxWidth(),
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFFFA726),   // darker orange
-                            unfocusedBorderColor = Color(0xFFFFCC80), // normal orange
-                            focusedLabelColor = Color(0xFFFFA726),
-                            cursorColor = Color(0xFFFFCC80)
+                            focusedBorderColor = Color(0xFFF56E0F),   // darker orange
+                            unfocusedBorderColor = Color(0xFF424048), // normal orange
+                            focusedLabelColor = Color(0xFFF56E0F),
+                            cursorColor = Color(0xFF424048),
+
+                            focusedTextColor = Color(0xFFFBFBFB),
+                            unfocusedTextColor = Color(0xFFFBFBFB)
                         )
                     )
 
@@ -182,7 +192,7 @@ fun SignupScreen(
                         // 🎯 Clean color system
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFF9500),
-                            disabledContainerColor = Color(0xFFFF9500).copy(alpha = 0.4f),
+                            disabledContainerColor = Color(0xFFFEAE46),
                             contentColor = Color.White,
                             disabledContentColor = Color.White.copy(alpha = 0.6f)
                         ),
@@ -213,7 +223,7 @@ fun SignupScreen(
                     TextButton(
                         onClick = onNavigateToLogin,
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = Color(0xFF000000)
+                            contentColor = Color(0xFFFBFBFB)
                         )
                     ) {
                         Text("Already have an account? Login")

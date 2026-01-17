@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import com.app.lovelyprints.R
+
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontWeight = FontWeight.Normal,

@@ -14,6 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -22,11 +24,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.lovelyprints.data.model.Shop
-import com.app.lovelyprints.theme.Bebasneue
-import com.app.lovelyprints.theme.ImpactFont
 import com.app.lovelyprints.theme.Inter
-import com.app.lovelyprints.theme.Montserrat
-import com.app.lovelyprints.theme.Thunder
 import com.app.lovelyprints.viewmodel.HomeViewModel
 import com.app.lovelyprints.viewmodel.HomeViewModelFactory
 
@@ -50,8 +48,8 @@ fun HomeScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFFFFFF),
-                        Color(0xFFFFFFFF)
+                        Color(0xFF151419),
+                        Color(0xFF151419)
                     )
                 )
             )
@@ -62,9 +60,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-
-
-
             // --------------------------------------------------
             // TITLE
             // --------------------------------------------------
@@ -73,7 +68,7 @@ fun HomeScreen(
                 style = MaterialTheme.typography.headlineLarge,
                 fontFamily = Inter,
                 modifier = Modifier.padding(bottom = 10.dp),
-                color = Color(0xFF1C1C1C)
+                color = Color(0xFF878787)
             )
             // --------------------------------------------------
             // 🔍 FANCY SEARCH BAR
@@ -141,9 +136,9 @@ fun HomeScreen(
 
                     // 🎨 Gradient sets for cards
                     val cardGradients = listOf(
-                        listOf(Color(0xFFFFB6A5), Color(0xFFFFD1DC)),
-                        listOf(Color(0xFFFFD1DC), Color(0xFFFFB6A5)),
-                        listOf(Color(0xFFFFB6A5), Color(0xFFFFD1DC))
+                        listOf(Color(0xFFFF893D), Color(0xFFFC6909)),
+                        listOf(Color(0xFFFC6B0C), Color(0xFFFF893D)),
+                        listOf(Color(0xFFFF893D), Color(0xFFFE6D0E))
                     )
 
                     // 🔍 Reorder list so matches come first
@@ -192,69 +187,67 @@ fun FancySearchBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(30.dp),
-                ambientColor = Color.Black.copy(alpha = 0.30f),
-                spotColor = Color.Black.copy(alpha = 0.30f)
-            )
-            .background(
-                color = Color.White,
-                shape = RoundedCornerShape(30.dp)
-            )
-            .padding(horizontal = 12.dp),
-        contentAlignment = Alignment.CenterStart
+            .height(64.dp),
+        contentAlignment = Alignment.Center
     ) {
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(
+                    color = Color(0xFFF4F4F4),
+                    shape = RoundedCornerShape(30.dp)
+                )
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
 
-            // 🔍 Search icon (inside field, left)
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = Color.Gray,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxSize()
+            ) {
 
-            Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = Color(0xFFF56E0F),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
 
-            // ✍️ Text input
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = true,
-                textStyle = LocalTextStyle.current.copy(
-                    color = Color.Black
-                ),
-                modifier = Modifier.weight(1f)
-            ) { innerTextField ->
-                if (value.isEmpty()) {
-                    Text(
-                        text = "Search shop...",
-                        color = Color.Gray
-                    )
+                Spacer(Modifier.width(8.dp))
+
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(
+                        color = Color.Black
+                    ),
+                    modifier = Modifier.weight(1f)
+                ) { innerTextField ->
+                    if (value.isEmpty()) {
+                        Text(
+                            "Search shop...",
+                            color = Color.Gray
+                        )
+                    }
+                    innerTextField()
                 }
-                innerTextField()
-            }
 
-            // ❌ Clear button
-            if (value.isNotEmpty()) {
-                IconButton(onClick = onClearClick) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Clear",
-                        tint = Color.Gray
-                    )
+                if (value.isNotEmpty()) {
+                    IconButton(onClick = onClearClick) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = null,
+                            tint = Color.Gray
+                        )
+                    }
                 }
             }
         }
     }
 }
-
 
 // --------------------------------------------------
 // 🧩 SHOP CARD
@@ -303,9 +296,9 @@ fun ShopCard(
             Text(
                 text = "Block: ${shop.block}",
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = Color.White,
                     shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.25f),
+                        color = Color.Black.copy(alpha = 0.35f),
                         offset = Offset(1f, 1f),
                         blurRadius = 4f
                     )

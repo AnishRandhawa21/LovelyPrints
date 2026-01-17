@@ -40,3 +40,23 @@ private val DarkColorScheme = darkColorScheme(
     secondary = PurpleGrey80,
     tertiary = Pink80
 )
+
+//Background
+val backgroundLight = Color(0xFFFAFAFA)
+val SurfaceLight = Color(0xFFFFFFFF)
+
+//Brand
+val LpuOrange = Color(0xFFF58220)
+val LpuBlue = Color(0xFF7AA6B3)
+
+//Text
+val TextPrimary = Color(0xFF212121)
+val TextSecondary = Color(0xFF616161)
+
+//Accent / states
+val AccentBlue = Color(0xFF1565C0)
+val SuccessGreen = Color(0xFF2E7D32)
+val ErrorRed = Color(0xFFC62828)
+
+//Other
+val DividerGray = Color(0xFFE0E0E0)

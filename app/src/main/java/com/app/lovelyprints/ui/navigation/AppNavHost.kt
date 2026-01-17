@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.app.lovelyprints.ui.navigation
 
 import androidx.compose.runtime.Composable
@@ -12,6 +14,8 @@ import com.google.accompanist.navigation.animation.composable
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 import com.app.lovelyprints.di.AppContainer
 import com.app.lovelyprints.ui.auth.LoginScreen
@@ -20,9 +24,17 @@ import com.app.lovelyprints.ui.home.HomeScreen
 import com.app.lovelyprints.ui.order.CreateOrderScreen
 import com.app.lovelyprints.ui.orders.OrdersScreen
 import com.app.lovelyprints.ui.profile.ProfileScreen
+import com.app.lovelyprints.ui.splash.SplashScreen
 import com.app.lovelyprints.viewmodel.*
 
-@OptIn(ExperimentalAnimationApi::class)   // ✅ correct OptIn
+private val enterFromRight = slideInHorizontally { it }
+private val exitToLeft = slideOutHorizontally { -it }
+
+private val enterFromLeft = slideInHorizontally { -it }
+private val exitToRight = slideOutHorizontally { it }
+
+
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -38,11 +50,35 @@ fun AppNavHost(
     ) {
 
         // ------------------------------------------------
+        // Splash Screen
+        // ------------------------------------------------
+
+        composable(
+            route = Routes.Splash.route,
+            exitTransition = { fadeOut() }
+        ) {
+            SplashScreen(
+                viewModelFactory = SplashViewModelFactory(appContainer.tokenManager),
+                onNavigateToLogin = {
+                    navController.navigate(Routes.Login.route) {
+                        popUpTo(Routes.Splash.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMain = {
+                    navController.navigate(Routes.Main.route) {
+                        popUpTo(Routes.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // ------------------------------------------------
         // Auth Screens (with slide transitions)
         // ------------------------------------------------
 
         composable(
             route = Routes.Login.route,
+            enterTransition = { fadeIn() },
             exitTransition = {
                 slideOutHorizontally { -it }
             },
@@ -95,13 +131,22 @@ fun AppNavHost(
         // Main Flow
         // ------------------------------------------------
 
-        composable(Routes.Main.route) {
+        composable(
+            route = Routes.Main.route,
+            enterTransition = { fadeIn() }
+        ) {
             navController.navigate(Routes.Home.route) {
                 popUpTo(Routes.Main.route) { inclusive = true }
             }
         }
 
-        composable(Routes.Home.route) {
+        composable(
+            route = Routes.Home.route,
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { fadeOut() }
+        ) {
             HomeScreen(
                 viewModelFactory = HomeViewModelFactory(appContainer.shopRepository),
                 onShopClick = { shopId ->
@@ -110,13 +155,25 @@ fun AppNavHost(
             )
         }
 
-        composable(Routes.Orders.route) {
+        composable(
+            route = Routes.Orders.route,
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { fadeOut() }
+        ) {
             OrdersScreen(
                 viewModelFactory = OrdersViewModelFactory(appContainer.orderRepository)
             )
         }
 
-        composable(Routes.Profile.route) {
+        composable(
+            route = Routes.Profile.route,
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { fadeOut() }
+        ) {
             ProfileScreen(
                 viewModelFactory = ProfileViewModelFactory(appContainer.authRepository),
                 tokenManager = appContainer.tokenManager,

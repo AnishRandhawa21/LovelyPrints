@@ -53,7 +53,7 @@ fun MainScreen(
                             ambientColor = Color.Black.copy(alpha = 0.5f),
                             spotColor = Color.Black.copy(alpha = 0.5f)
                         ),
-                    containerColor = Color.White
+                    containerColor = Color(0xFF1B1B1E)
                 ) {
                     bottomNavItems.forEach { item ->
                         val selected = currentRoute == item.route
@@ -82,15 +82,15 @@ fun MainScreen(
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 // 🔥 Selected = Orange highlight
-                                selectedIconColor = Color(0xFFFB6E3E),
-                                selectedTextColor = Color(0xFFFB6E3E),
+                                selectedIconColor = Color(0xFFFF8840),
+                                selectedTextColor = Color(0xFFFF8840),
 
                                 // 💡 Indicator bubble = soft blue
-                                indicatorColor = Color(0xFFE0EAF5),
+                                indicatorColor = Color(0xFFEBEBEB),
 
                                 // 🌊 Unselected = calm dark blue
-                                unselectedIconColor = Color(0xFF0D2137).copy(alpha = 0.6f),
-                                unselectedTextColor = Color(0xFF0D2137).copy(alpha = 0.6f)
+                                unselectedIconColor = Color(0xFF878787).copy(alpha = 0.6f),
+                                unselectedTextColor = Color(0xFF878787).copy(alpha = 0.6f)
                             )
                         )
                     }

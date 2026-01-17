@@ -69,6 +69,12 @@ data class Order(
     @SerializedName("shops")
     val shop: OrderShop?,
 
+    @SerializedName("delivery_otp")
+    val deliveryOtp: String?,        // ✅ ADD
+
+    @SerializedName("otp_verified")
+    val otpVerified: Boolean,
+
     val documents: List<OrderDocument>?
 )
 
