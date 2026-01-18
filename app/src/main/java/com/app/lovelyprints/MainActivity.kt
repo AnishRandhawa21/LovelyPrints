@@ -1,109 +1,147 @@
-package com.app.lovelyprints
+    package com.app.lovelyprints
 
-import android.app.Activity
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
-import androidx.navigation.compose.rememberNavController
-import com.app.lovelyprints.theme.LovelyPrintsTheme
-import com.app.lovelyprints.ui.main.MainScreen
-import com.app.lovelyprints.ui.navigation.AppNavHost
-import com.app.lovelyprints.ui.navigation.Routes
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
+    import android.app.Activity
+    import android.os.Bundle
+    import android.util.Log
+    import androidx.activity.ComponentActivity
+    import androidx.activity.compose.setContent
+    import androidx.compose.foundation.background
+    import androidx.compose.foundation.layout.Box
+    import androidx.compose.foundation.layout.fillMaxSize
+    import androidx.compose.material3.MaterialTheme
+    import androidx.compose.runtime.*
+    import androidx.compose.ui.Modifier
+    import androidx.compose.ui.graphics.Color
+    import androidx.compose.ui.graphics.toArgb
+    import androidx.compose.ui.platform.LocalView
+    import androidx.core.view.WindowCompat
+    import androidx.navigation.compose.rememberNavController
+    import com.app.lovelyprints.data.model.RazorpayHolder
+    import com.app.lovelyprints.data.model.RazorpayResult
+    import com.app.lovelyprints.theme.LovelyPrintsTheme
+    import com.app.lovelyprints.ui.main.MainScreen
+    import com.app.lovelyprints.ui.navigation.AppNavHost
+    import com.app.lovelyprints.ui.navigation.Routes
+    import com.razorpay.Checkout
+    import com.razorpay.PaymentData
+    import com.razorpay.PaymentResultWithDataListener
 
-class MainActivity : ComponentActivity() {
+    class MainActivity :
+        ComponentActivity(),
+        PaymentResultWithDataListener {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
 
-        // 🎨 Prevent white flash - set window background immediately
-        window.setBackgroundDrawableResource(android.R.color.transparent)
-        window.decorView.setBackgroundColor(android.graphics.Color.parseColor("#151419"))
+            // ✅ REQUIRED BY RAZORPAY
+            Checkout.preload(applicationContext)
 
-        // ✅ Required for edge-to-edge
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+            // 🎨 Prevent white flash
+            window.setBackgroundDrawableResource(android.R.color.transparent)
+            window.decorView.setBackgroundColor(android.graphics.Color.parseColor("#151419"))
 
-        setContent {
-            LovelyPrintsTheme {
+            // ✅ Edge-to-edge
+            WindowCompat.setDecorFitsSystemWindows(window, false)
 
-                FixSystemBars(
-                    enabled = true
-                )
+            setContent {
+                LovelyPrintsTheme {
 
-                val navController = rememberNavController()
-                var showSplash by remember { mutableStateOf(true) }
+                    FixSystemBars(enabled = true)
 
-                // ✅ ROOT NEVER DISAPPEARS
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background)
-                ) {
+                    val navController = rememberNavController()
+                    var showSplash by remember { mutableStateOf(true) }
 
-                    if (showSplash) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.background)
+                    ) {
 
-                        AppNavHost(
-                            navController = navController,
-                            startDestination = Routes.Splash.route,
-                            appContainer = (application as LovelyPrintsApp).appContainer,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        if (showSplash) {
 
-                        LaunchedEffect(Unit) {
-                            navController.addOnDestinationChangedListener { _, destination, _ ->
-                                if (destination.route != Routes.Splash.route) {
-                                    showSplash = false
-                                }
-                            }
-                        }
-
-                    } else {
-
-                        MainScreen(navController = navController) { paddingModifier ->
                             AppNavHost(
                                 navController = navController,
                                 startDestination = Routes.Splash.route,
                                 appContainer = (application as LovelyPrintsApp).appContainer,
-                                modifier = paddingModifier
+                                modifier = Modifier.fillMaxSize()
                             )
+
+                            LaunchedEffect(Unit) {
+                                navController.addOnDestinationChangedListener { _, destination, _ ->
+                                    if (destination.route != Routes.Splash.route) {
+                                        showSplash = false
+                                    }
+                                }
+                            }
+
+                        } else {
+
+                            MainScreen(navController = navController) { paddingModifier ->
+                                AppNavHost(
+                                    navController = navController,
+                                    startDestination = Routes.Splash.route,
+                                    appContainer = (application as LovelyPrintsApp).appContainer,
+                                    modifier = paddingModifier
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-    }
-}
+        // --------------------------------------------------
+        // ✅ RAZORPAY CALLBACKS
+        // --------------------------------------------------
 
-@Composable
-fun FixSystemBars(
-    enabled: Boolean
-) {
-    val view = LocalView.current
-    // 🎨 Use your actual hardcoded background color instead of MaterialTheme
-    val backgroundColor = Color(0xFF151419)
+        override fun onPaymentSuccess(
+            razorpayPaymentId: String?,
+            paymentData: PaymentData?
+        ) {
+            val orderId = paymentData?.orderId ?: return
+            val paymentId = paymentData.paymentId ?: return
+            val signature = paymentData.signature ?: return
 
-    SideEffect {
-        if (!enabled) return@SideEffect
+            RazorpayHolder.result =
+                RazorpayResult(
+                    orderId = orderId,
+                    paymentId = paymentId,
+                    signature = signature
+                )
 
-        val window = (view.context as Activity).window
+            Log.d("RAZORPAY", "PAYMENT SAVED")
+        }
 
-        window.statusBarColor = backgroundColor.toArgb()
-        window.navigationBarColor = backgroundColor.toArgb()
 
-        WindowCompat.getInsetsController(window, view).apply {
-            // ✅ Set to false because you're using dark background
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
+        override fun onPaymentError(
+            code: Int,
+            description: String?,
+            paymentData: PaymentData?
+        ) {
+            Log.e("RAZORPAY", "PAYMENT FAILED → $description")
         }
     }
-}
+
+    /* -------------------------------------------------- */
+    /* ---------------- SYSTEM BAR FIX ------------------- */
+    /* -------------------------------------------------- */
+
+    @Composable
+    fun FixSystemBars(enabled: Boolean) {
+        val view = LocalView.current
+        val backgroundColor = Color(0xFF151419)
+
+        SideEffect {
+            if (!enabled) return@SideEffect
+
+            val window = (view.context as Activity).window
+
+            window.statusBarColor = backgroundColor.toArgb()
+            window.navigationBarColor = backgroundColor.toArgb()
+
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
+        }
+    }

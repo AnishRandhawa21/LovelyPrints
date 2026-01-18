@@ -18,7 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Delete
+
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -155,6 +155,24 @@ fun CreateOrderScreen(
             text = { Text(it) }
         )
     }
+    LaunchedEffect(Unit) {
+        while (true) {
+
+            RazorpayHolder.result?.let {
+
+                viewModel.verifyPayment(
+                    razorpayOrderId = it.orderId,
+                    razorpayPaymentId = it.paymentId,
+                    razorpaySignature = it.signature
+                )
+
+                RazorpayHolder.result = null
+            }
+
+            kotlinx.coroutines.delay(500)
+        }
+    }
+
 }
 
 /* -------------------------------------------------- */
@@ -718,20 +736,24 @@ fun startRazorpayPayment(
     onError: (String) -> Unit
 ) {
     val checkout = Checkout()
-    checkout.setKeyID("YOUR_RAZORPAY_KEY")
+
+    // ✅ ONLY THE KEY
+    checkout.setKeyID("Api here")
+
+    val options = JSONObject().apply {
+        put("order_id", razorpayOrderId)
+        put("amount", amount) // ⚠️ no ×100 unless backend sends rupees
+        put("currency", "INR")
+        put("name", "Lovely Prints")
+    }
 
     try {
-        val options = JSONObject().apply {
-            put("order_id", razorpayOrderId)
-            put("amount", amount * 100)
-            put("currency", "INR")
-            put("name", "Lovely Prints")
-        }
         checkout.open(activity, options)
     } catch (e: Exception) {
         onError(e.message ?: "Payment failed")
     }
 }
+
 
 /* -------------------------------------------------- */
 /* ---------------- FILE NAME HELPER ----------------- */
