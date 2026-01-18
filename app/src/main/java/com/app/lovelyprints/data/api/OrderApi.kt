@@ -31,7 +31,7 @@ interface OrderApi {
     @POST("payments/create-order")
     suspend fun createPayment(
         @Body request: CreatePaymentRequest
-    ): Response<CreatePaymentResponse>
+    ): Response<ApiResponse<CreatePaymentResponse>>
 
     @POST("payments/verify")
     suspend fun verifyPayment(

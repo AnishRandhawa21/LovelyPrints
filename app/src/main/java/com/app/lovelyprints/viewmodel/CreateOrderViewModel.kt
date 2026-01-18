@@ -1,5 +1,6 @@
 package com.app.lovelyprints.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.lovelyprints.data.model.*
@@ -139,18 +140,12 @@ class CreateOrderViewModel(
     /* ---------------- ORDER FLOW ---------------- */
 
     fun setFileAndReadPages(context: Context, file: File) {
-        // 1️⃣ save file
         _uiState.value = _uiState.value.copy(selectedFile = file)
 
-        // 2️⃣ read pages safely
         viewModelScope.launch {
             try {
                 val pages = PdfUtils.getPdfPageCount(context, file)
-
-                _uiState.value = _uiState.value.copy(
-                    pageCount = pages
-                )
-
+                _uiState.value = _uiState.value.copy(pageCount = pages)
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = "Failed to read PDF pages"
@@ -158,6 +153,7 @@ class CreateOrderViewModel(
             }
         }
     }
+
     fun submitOrder(onPaymentRequired: (String, Int) -> Unit) {
         viewModelScope.launch {
 
@@ -191,6 +187,8 @@ class CreateOrderViewModel(
             )
 
             /* 1️⃣ CREATE ORDER */
+            Log.d("CREATE_ORDER_VM", "Creating order for shop: $shopId")
+
             val orderResult = orderRepository.createOrder(
                 shopId = shopId,
                 description = "Print order",
@@ -199,9 +197,13 @@ class CreateOrderViewModel(
             )
 
             if (orderResult !is Result.Success) {
+                Log.e(
+                    "CREATE_ORDER_VM",
+                    "Order creation failed: ${(orderResult as Result.Error).message}"
+                )
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (orderResult as Result.Error).message,
+                    error = orderResult.message,
                     currentStep = OrderStep.SELECT_OPTIONS
                 )
                 return@launch
@@ -209,23 +211,29 @@ class CreateOrderViewModel(
 
             val orderId = orderResult.data.id
             currentOrderId = orderId
+            Log.d("CREATE_ORDER_VM", "✅ Order created successfully with ID: $orderId")
 
             /* 2️⃣ UPLOAD FILE */
             _uiState.value = state.copy(currentStep = OrderStep.UPLOADING)
+            Log.d("CREATE_ORDER_VM", "Uploading file: ${file.name}")
 
             val uploadResult = orderRepository.uploadFile(file)
             if (uploadResult !is Result.Success) {
+                Log.e(
+                    "CREATE_ORDER_VM",
+                    "File upload failed: ${(uploadResult as Result.Error).message}"
+                )
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (uploadResult as Result.Error).message,
+                    error = uploadResult.message,
                     currentStep = OrderStep.SELECT_OPTIONS
                 )
                 return@launch
             }
 
-            // 🔥 FIX 3 — FILE KEY SAFETY
             val fileKey = uploadResult.data.fileKey
             if (fileKey.isNullOrBlank()) {
+                Log.e("CREATE_ORDER_VM", "File key is null or blank")
                 _uiState.value = state.copy(
                     isLoading = false,
                     error = "File upload failed. Please try again.",
@@ -234,7 +242,11 @@ class CreateOrderViewModel(
                 return@launch
             }
 
+            Log.d("CREATE_ORDER_VM", "✅ File uploaded successfully with key: $fileKey")
+
             /* 3️⃣ ATTACH DOCUMENT */
+            Log.d("CREATE_ORDER_VM", "Attaching document to order: $orderId")
+
             val attachResult = orderRepository.attachDocument(
                 orderId = orderId,
                 fileKey = fileKey,
@@ -247,28 +259,54 @@ class CreateOrderViewModel(
             )
 
             if (attachResult !is Result.Success) {
+                Log.e(
+                    "CREATE_ORDER_VM",
+                    "Document attachment failed: ${(attachResult as Result.Error).message}"
+                )
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (attachResult as Result.Error).message,
+                    error = attachResult.message,
                     currentStep = OrderStep.SELECT_OPTIONS
                 )
                 return@launch
             }
 
+            Log.d("CREATE_ORDER_VM", "✅ Document attached successfully")
+
+// 🔥 ADD THIS LINE - Wait for backend to calculate total_price
+            kotlinx.coroutines.delay(1500)
+
             /* 4️⃣ CREATE PAYMENT */
             _uiState.value = state.copy(currentStep = OrderStep.PROCESSING_PAYMENT)
+
+// Wait for backend to calculate total_price
+            kotlinx.coroutines.delay(1500)
+
+            Log.d("CREATE_ORDER_VM", "Creating payment for order ID: $orderId")
 
             val paymentResult = orderRepository.createPayment(orderId)
 
             if (paymentResult is Result.Success) {
-                onPaymentRequired(
-                    paymentResult.data.id,
-                    paymentResult.data.amount
-                )
+                val razorpayOrderId = paymentResult.data.id
+                val amount = paymentResult.data.amount
+
+                if (razorpayOrderId.isNullOrBlank() || amount == null || amount == 0) {
+                    Log.e("CREATE_ORDER_VM", "Invalid payment data: id=$razorpayOrderId, amount=$amount")
+                    _uiState.value = state.copy(
+                        isLoading = false,
+                        error = "Payment creation failed",
+                        currentStep = OrderStep.SELECT_OPTIONS
+                    )
+                    return@launch
+                }
+
+                Log.d("CREATE_ORDER_VM", "✅ Payment valid: razorpay_order_id=$razorpayOrderId, amount=$amount")
+                onPaymentRequired(razorpayOrderId, amount)
             } else {
+                Log.e("CREATE_ORDER_VM", "Payment creation failed: ${(paymentResult as Result.Error).message}")
                 _uiState.value = state.copy(
                     isLoading = false,
-                    error = (paymentResult as Result.Error).message,
+                    error = paymentResult.message,
                     currentStep = OrderStep.SELECT_OPTIONS
                 )
             }
@@ -282,7 +320,12 @@ class CreateOrderViewModel(
         razorpayPaymentId: String,
         razorpaySignature: String
     ) {
-        val orderId = currentOrderId ?: return
+        val orderId = currentOrderId ?: run {
+            Log.e("CREATE_ORDER_VM", "Cannot verify payment: currentOrderId is null")
+            return
+        }
+
+        Log.d("CREATE_ORDER_VM", "Verifying payment for order: $orderId")
 
         viewModelScope.launch {
             val result = orderRepository.verifyPayment(
@@ -293,18 +336,22 @@ class CreateOrderViewModel(
             )
 
             if (result is Result.Success) {
+                Log.d("CREATE_ORDER_VM", "✅ Payment verified successfully")
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     isSuccess = true,
                     currentStep = OrderStep.SUCCESS
                 )
             } else {
+                Log.e(
+                    "CREATE_ORDER_VM",
+                    "Payment verification failed: ${(result as Result.Error).message}"
+                )
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = (result as Result.Error).message
+                    error = result.message
                 )
             }
         }
     }
 }
-

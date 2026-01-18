@@ -1,5 +1,6 @@
 package com.app.lovelyprints.data.repository
 
+import android.util.Log
 import com.app.lovelyprints.data.api.OrderApi
 import com.app.lovelyprints.data.model.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -33,6 +34,7 @@ class OrderRepository(
             )
 
             if (!response.isSuccessful) {
+                Log.e("ORDER_REPO", "Create order failed: ${response.code()} - ${response.errorBody()?.string()}")
                 return when (response.code()) {
                     401, 403 ->
                         Result.Error("Session expired. Please login again.")
@@ -51,6 +53,7 @@ class OrderRepository(
             Result.Success(body.data)
 
         } catch (e: Exception) {
+            Log.e("ORDER_REPO", "Create order exception: ${e.message}", e)
             Result.Error(mapNetworkError(e))
         }
     }
@@ -68,6 +71,7 @@ class OrderRepository(
             val response = orderApi.uploadFile(body)
 
             if (!response.isSuccessful) {
+                Log.e("ORDER_REPO", "Upload file failed: ${response.code()} - ${response.errorBody()?.string()}")
                 return when (response.code()) {
                     401, 403 ->
                         Result.Error("Session expired. Please login again.")
@@ -89,6 +93,7 @@ class OrderRepository(
             Result.Success(data)
 
         } catch (e: Exception) {
+            Log.e("ORDER_REPO", "Upload file exception: ${e.message}", e)
             Result.Error(mapNetworkError(e))
         }
     }
@@ -120,6 +125,7 @@ class OrderRepository(
             )
 
             if (!response.isSuccessful) {
+                Log.e("ORDER_REPO", "Attach document failed: ${response.code()} - ${response.errorBody()?.string()}")
                 return when (response.code()) {
                     401, 403 ->
                         Result.Error("Session expired. Please login again.")
@@ -135,6 +141,7 @@ class OrderRepository(
             Result.Success(Unit)
 
         } catch (e: Exception) {
+            Log.e("ORDER_REPO", "Attach document exception: ${e.message}", e)
             Result.Error(mapNetworkError(e))
         }
     }
@@ -146,6 +153,7 @@ class OrderRepository(
             val response = orderApi.getOrders()
 
             if (!response.isSuccessful) {
+                Log.e("ORDER_REPO", "Get orders failed: ${response.code()} - ${response.errorBody()?.string()}")
                 return when (response.code()) {
                     401, 403 ->
                         Result.Error("Session expired. Please login again.")
@@ -164,6 +172,7 @@ class OrderRepository(
             Result.Success(body)
 
         } catch (e: Exception) {
+            Log.e("ORDER_REPO", "Get orders exception: ${e.message}", e)
             Result.Error(mapNetworkError(e))
         }
     }
@@ -172,26 +181,53 @@ class OrderRepository(
 
     suspend fun createPayment(orderId: String): Result<CreatePaymentResponse> {
         return try {
+            Log.d("ORDER_REPO", "Creating payment for order: $orderId")
+
             val response = orderApi.createPayment(
                 CreatePaymentRequest(orderId)
             )
 
+            Log.d("ORDER_REPO", "Payment API response code: ${response.code()}")
+
             if (!response.isSuccessful) {
+                val errorBody = response.errorBody()?.string()
+                Log.e("ORDER_REPO", "Create payment failed: ${response.code()} - $errorBody")
+
                 return when (response.code()) {
-                    401, 403 ->
-                        Result.Error("Session expired. Please login again.")
-
-                    500 ->
-                        Result.Error("Server error. Please try again later.")
-
-                    else ->
-                        Result.Error("Payment creation failed.")
+                    400 -> Result.Error("Invalid order. Error: $errorBody")
+                    401, 403 -> Result.Error("Session expired. Please login again.")
+                    404 -> Result.Error("Order not found.")
+                    500 -> Result.Error("Server error. Please try again later.")
+                    else -> Result.Error("Payment creation failed: $errorBody")
                 }
             }
 
-            Result.Success(response.body()!!)
+            val apiResponse = response.body()
+            if (apiResponse == null || !apiResponse.success) {
+                Log.e("ORDER_REPO", "Payment response body is null or success is false")
+                return Result.Error(apiResponse?.message ?: "Empty payment response")
+            }
+
+            val body = apiResponse.data
+            Log.d("ORDER_REPO", "📦 Data: $body")
+
+            // 🔥 VALIDATE DATA
+            if (body.id.isNullOrBlank()) {
+                Log.e("ORDER_REPO", "❌ Razorpay order_id is null or empty!")
+                return Result.Error("Invalid payment response: missing order ID")
+            }
+
+            if (body.amount == null || body.amount == 0) {
+                Log.e("ORDER_REPO", "❌ Payment amount is null or zero!")
+                return Result.Error("Invalid payment response: missing amount")
+            }
+
+            Log.d("ORDER_REPO", "✅ Payment created successfully: order_id=${body.id}, amount=${body.amount}")
+            Result.Success(body)
 
         } catch (e: Exception) {
+            Log.e("ORDER_REPO", "Create payment exception: ${e.message}", e)
+            e.printStackTrace()
             Result.Error(mapNetworkError(e))
         }
     }
@@ -203,6 +239,8 @@ class OrderRepository(
         orderId: String
     ): Result<VerifyPaymentResponse> {
         return try {
+            Log.d("ORDER_REPO", "Verifying payment - Order: $orderId, Payment: $razorpayPaymentId")
+
             val response = orderApi.verifyPayment(
                 VerifyPaymentRequest(
                     razorpayOrderId,
@@ -213,6 +251,9 @@ class OrderRepository(
             )
 
             if (!response.isSuccessful) {
+                val errorBody = response.errorBody()?.string()
+                Log.e("ORDER_REPO", "Verify payment failed: ${response.code()} - $errorBody")
+
                 return when (response.code()) {
                     401, 403 ->
                         Result.Error("Session expired. Please login again.")
@@ -221,13 +262,22 @@ class OrderRepository(
                         Result.Error("Payment verification failed.")
 
                     else ->
-                        Result.Error("Payment verification failed.")
+                        Result.Error("Payment verification failed: $errorBody")
                 }
             }
 
-            Result.Success(response.body()!!)
+            val body = response.body()
+            if (body == null) {
+                Log.e("ORDER_REPO", "Verify payment response body is null")
+                return Result.Error("Empty verification response")
+            }
+
+            Log.d("ORDER_REPO", "Payment verified successfully")
+            Result.Success(body)
 
         } catch (e: Exception) {
+            Log.e("ORDER_REPO", "Verify payment exception: ${e.message}", e)
+            e.printStackTrace()
             Result.Error(mapNetworkError(e))
         }
     }
@@ -246,7 +296,7 @@ class OrderRepository(
                 "Network error. Please check your connection."
 
             else ->
-                "Something went wrong. Please try again."
+                "Something went wrong: ${e.message}"
         }
     }
 }

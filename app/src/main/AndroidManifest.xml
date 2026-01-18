@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />  <!-- ✅ ADD THIS -->
 
     <application
         android:name=".LovelyPrintsApp"
@@ -19,7 +20,9 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.LovelyPrints">
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.LovelyPrints">  <!-- ✅ ADD windowSoftInputMode -->
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -18,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -126,7 +126,9 @@ fun CreateOrderScreen(
                                     signature
                                 )
                             },
-                            onError = {}
+                            onError = { errorMsg ->
+                                Log.e("RAZORPAY", "Payment Error: $errorMsg")
+                            }
                         )
                     }
                 }
@@ -155,24 +157,20 @@ fun CreateOrderScreen(
             text = { Text(it) }
         )
     }
+
     LaunchedEffect(Unit) {
         while (true) {
-
             RazorpayHolder.result?.let {
-
                 viewModel.verifyPayment(
                     razorpayOrderId = it.orderId,
                     razorpayPaymentId = it.paymentId,
                     razorpaySignature = it.signature
                 )
-
                 RazorpayHolder.result = null
             }
-
             kotlinx.coroutines.delay(500)
         }
     }
-
 }
 
 /* -------------------------------------------------- */
@@ -246,7 +244,6 @@ fun SelectOptionsContent(
                                 modifier = Modifier.size(48.dp)
                             )
                         }
-
                     }
 
                     Spacer(Modifier.height(12.dp))
@@ -378,7 +375,6 @@ fun SelectOptionsContent(
                                         .padding(horizontal = 14.dp, vertical = 12.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    // Top check icon
                                     Box(
                                         modifier = Modifier.fillMaxWidth(),
                                         contentAlignment = Alignment.TopEnd
@@ -397,7 +393,6 @@ fun SelectOptionsContent(
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    // Title section
                                     Column(
                                         modifier = Modifier.height(44.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -422,7 +417,6 @@ fun SelectOptionsContent(
 
                                     Spacer(modifier = Modifier.height(12.dp))
 
-                                    // Color preview
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                                         verticalAlignment = Alignment.CenterVertically
@@ -601,7 +595,6 @@ private fun <T> DropdownSection(
     val isSelected = selected.isNotEmpty()
 
     Column {
-        // section title (same as Color Mode heading)
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium,
@@ -672,6 +665,7 @@ private fun <T> DropdownSection(
         }
     }
 }
+
 /* -------------------------------------------------- */
 /* ---------------- HELPERS -------------------------- */
 /* -------------------------------------------------- */
@@ -735,25 +729,31 @@ fun startRazorpayPayment(
     onSuccess: (String, String) -> Unit,
     onError: (String) -> Unit
 ) {
-    val checkout = Checkout()
-
-    // ✅ ONLY THE KEY
-    checkout.setKeyID("Api here")
-
-    val options = JSONObject().apply {
-        put("order_id", razorpayOrderId)
-        put("amount", amount) // ⚠️ no ×100 unless backend sends rupees
-        put("currency", "INR")
-        put("name", "Lovely Prints")
-    }
-
     try {
+        val checkout = Checkout()
+
+        // ✅ SET YOUR RAZORPAY KEY ID HERE
+        checkout.setKeyID("rzp_test_RtmyYs3tfIn7km")  // REPLACE WITH YOUR ACTUAL KEY
+
+        val options = JSONObject()
+        options.put("name", "Lovely Prints")
+        options.put("description", "Print Order Payment")
+        options.put("order_id", razorpayOrderId)
+        options.put("currency", "INR")
+        options.put("amount", amount) // Amount should be in paise (already handled by backend)
+
+        // Theme
+        options.put("theme.color", "#FF9500")
+
+        Log.d("RAZORPAY", "Opening payment with order_id: $razorpayOrderId, amount: $amount")
+
         checkout.open(activity, options)
+
     } catch (e: Exception) {
-        onError(e.message ?: "Payment failed")
+        Log.e("RAZORPAY", "Error opening Razorpay: ${e.message}", e)
+        onError(e.message ?: "Payment initialization failed")
     }
 }
-
 
 /* -------------------------------------------------- */
 /* ---------------- FILE NAME HELPER ----------------- */
