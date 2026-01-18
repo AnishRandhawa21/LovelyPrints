@@ -14,9 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -111,7 +108,10 @@ fun HomeScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.loadShops() }) {
+                        Button(onClick = { viewModel.loadShops() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFF9500)
+                            )) {
                             Text("Retry")
                         }
                     }
@@ -129,16 +129,16 @@ fun HomeScreen(
                     }
                 }
 
-                // --------------------------------------------------
+                // --------------------------------------------------#878787
                 // CONTENT
                 // --------------------------------------------------
                 else -> {
 
                     // 🎨 Gradient sets for cards
                     val cardGradients = listOf(
-                        listOf(Color(0xFFFF893D), Color(0xFFFC6909)),
-                        listOf(Color(0xFFFC6B0C), Color(0xFFFF893D)),
-                        listOf(Color(0xFFFF893D), Color(0xFFFE6D0E))
+                        listOf(Color(0xFFE88504), Color(0xFFFF9500)),
+                        listOf(Color(0xFFFF9500), Color(0xFFE88504)),
+                        listOf(Color(0xFFE88504), Color(0xFFFF9500))
                     )
 
                     // 🔍 Reorder list so matches come first
@@ -158,8 +158,8 @@ fun HomeScreen(
 
                             val brush = Brush.linearGradient(
                                 colors = gradientColors,
-                                start = Offset(100f, 300f),   // bottom
-                                end = Offset(500f, 500f)     // top-right
+                                start = Offset(500f, 700f),   // bottom
+                                end = Offset(200f, 0f)     // top-right
                             )
 
                             ShopCard(
@@ -196,7 +196,7 @@ fun FancySearchBar(
                 .fillMaxWidth()
                 .height(56.dp)
                 .background(
-                    color = Color(0xFFF4F4F4),
+                    color = Color(0xFF363636),
                     shape = RoundedCornerShape(30.dp)
                 )
                 .padding(horizontal = 12.dp),
@@ -222,7 +222,7 @@ fun FancySearchBar(
                     onValueChange = onValueChange,
                     singleLine = true,
                     textStyle = LocalTextStyle.current.copy(
-                        color = Color.Black
+                        color = Color.White
                     ),
                     modifier = Modifier.weight(1f)
                 ) { innerTextField ->

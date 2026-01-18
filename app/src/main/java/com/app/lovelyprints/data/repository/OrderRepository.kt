@@ -6,10 +6,15 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class OrderRepository(
     private val orderApi: OrderApi
 ) {
+
+    /* ---------------- CREATE ORDER ---------------- */
 
     suspend fun createOrder(
         shopId: String,
@@ -27,22 +32,30 @@ class OrderRepository(
                 )
             )
 
-            if (response.isSuccessful && response.body() != null) {
-                val order = response.body()!!.data   // ✅ unwrap here
-                Result.Success(order)
-            } else {
-                Result.Error(
-                    response.errorBody()?.string()
-                        ?: response.message()
-                        ?: "Failed to create order"
-                )
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    401, 403 ->
+                        Result.Error("Session expired. Please login again.")
+
+                    500 ->
+                        Result.Error("Server error. Please try again later.")
+
+                    else ->
+                        Result.Error("Failed to create order.")
+                }
             }
 
+            val body = response.body()
+                ?: return Result.Error("Empty server response")
+
+            Result.Success(body.data)
+
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+            Result.Error(mapNetworkError(e))
         }
     }
 
+    /* ---------------- UPLOAD FILE ---------------- */
 
     suspend fun uploadFile(file: File): Result<UploadData> {
         return try {
@@ -54,26 +67,33 @@ class OrderRepository(
 
             val response = orderApi.uploadFile(body)
 
-            println("UPLOAD CODE = ${response.code()}")
-            println("UPLOAD BODY = ${response.body()}")
-            println("UPLOAD ERROR = ${response.errorBody()?.string()}")
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    401, 403 ->
+                        Result.Error("Session expired. Please login again.")
 
-            if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body()!!.data)
-            } else {
-                Result.Error(
-                    response.errorBody()?.string()
-                        ?: response.message()
-                        ?: "Upload failed"
-                )
+                    413 ->
+                        Result.Error("File too large.")
+
+                    500 ->
+                        Result.Error("Server error while uploading file.")
+
+                    else ->
+                        Result.Error("File upload failed.")
+                }
             }
 
+            val data = response.body()?.data
+                ?: return Result.Error("Empty upload response")
+
+            Result.Success(data)
+
         } catch (e: Exception) {
-            e.printStackTrace()
-            Result.Error(e.message ?: "Upload exception")
+            Result.Error(mapNetworkError(e))
         }
     }
 
+    /* ---------------- ATTACH DOCUMENT ---------------- */
 
     suspend fun attachDocument(
         orderId: String,
@@ -98,21 +118,44 @@ class OrderRepository(
                     finishTypeId = finishTypeId
                 )
             )
-            if (response.isSuccessful)
-                Result.Success(Unit)
-            else
-                Result.Error(response.message() ?: "Failed to attach document")
+
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    401, 403 ->
+                        Result.Error("Session expired. Please login again.")
+
+                    500 ->
+                        Result.Error("Server error. Please try again later.")
+
+                    else ->
+                        Result.Error("Failed to attach document.")
+                }
+            }
+
+            Result.Success(Unit)
+
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+            Result.Error(mapNetworkError(e))
         }
     }
+
+    /* ---------------- GET ORDERS ---------------- */
 
     suspend fun getOrders(): Result<OrdersResponse> {
         return try {
             val response = orderApi.getOrders()
 
             if (!response.isSuccessful) {
-                return Result.Error("HTTP ${response.code()}")
+                return when (response.code()) {
+                    401, 403 ->
+                        Result.Error("Session expired. Please login again.")
+
+                    500 ->
+                        Result.Error("Server error. Please try again later.")
+
+                    else ->
+                        Result.Error("Failed to load orders.")
+                }
             }
 
             val body = response.body()
@@ -121,23 +164,35 @@ class OrderRepository(
             Result.Success(body)
 
         } catch (e: Exception) {
-            e.printStackTrace()
-            Result.Error(e.message ?: "Unknown error")
+            Result.Error(mapNetworkError(e))
         }
     }
 
+    /* ---------------- PAYMENT ---------------- */
 
     suspend fun createPayment(orderId: String): Result<CreatePaymentResponse> {
         return try {
             val response = orderApi.createPayment(
-                CreatePaymentRequest(orderId = orderId)
+                CreatePaymentRequest(orderId)
             )
-            if (response.isSuccessful && response.body() != null)
-                Result.Success(response.body()!!)
-            else
-                Result.Error(response.message() ?: "Failed to create payment")
+
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    401, 403 ->
+                        Result.Error("Session expired. Please login again.")
+
+                    500 ->
+                        Result.Error("Server error. Please try again later.")
+
+                    else ->
+                        Result.Error("Payment creation failed.")
+                }
+            }
+
+            Result.Success(response.body()!!)
+
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+            Result.Error(mapNetworkError(e))
         }
     }
 
@@ -150,18 +205,48 @@ class OrderRepository(
         return try {
             val response = orderApi.verifyPayment(
                 VerifyPaymentRequest(
-                    razorpayOrderId = razorpayOrderId,
-                    razorpayPaymentId = razorpayPaymentId,
-                    razorpaySignature = razorpaySignature,
-                    orderId = orderId
+                    razorpayOrderId,
+                    razorpayPaymentId,
+                    razorpaySignature,
+                    orderId
                 )
             )
-            if (response.isSuccessful && response.body() != null)
-                Result.Success(response.body()!!)
-            else
-                Result.Error(response.message() ?: "Payment verification failed")
+
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    401, 403 ->
+                        Result.Error("Session expired. Please login again.")
+
+                    500 ->
+                        Result.Error("Payment verification failed.")
+
+                    else ->
+                        Result.Error("Payment verification failed.")
+                }
+            }
+
+            Result.Success(response.body()!!)
+
         } catch (e: Exception) {
-            Result.Error(e.message ?: "Network error")
+            Result.Error(mapNetworkError(e))
+        }
+    }
+
+    /* ---------------- ERROR MAPPER ---------------- */
+
+    private fun mapNetworkError(e: Exception): String {
+        return when (e) {
+            is UnknownHostException ->
+                "No internet connection."
+
+            is SocketTimeoutException ->
+                "Connection timed out. Please try again."
+
+            is IOException ->
+                "Network error. Please check your connection."
+
+            else ->
+                "Something went wrong. Please try again."
         }
     }
 }

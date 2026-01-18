@@ -7,15 +7,30 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.lovelyprints.data.model.*
 import com.app.lovelyprints.viewmodel.*
@@ -29,6 +44,18 @@ import java.io.FileOutputStream
 /* -------------------------------------------------- */
 
 @Composable
+private fun ColorDot(color: Color) {
+    Box(
+        modifier = Modifier
+            .size(18.dp)
+            .background(
+                color = color,
+                shape = RoundedCornerShape(9.dp)
+            )
+    )
+}
+
+@Composable
 fun CreateOrderScreen(
     shopId: String,
     viewModelFactory: CreateOrderViewModelFactory,
@@ -39,7 +66,6 @@ fun CreateOrderScreen(
 
     val context = LocalContext.current
 
-    // Safely extract Activity
     val activity = remember(context) {
         var ctx: Context = context
         while (ctx is ContextWrapper) {
@@ -48,8 +74,6 @@ fun CreateOrderScreen(
         }
         null
     }
-
-    /* ---------------- FILE PICKER ---------------- */
 
     val filePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -65,17 +89,12 @@ fun CreateOrderScreen(
                 }
             }
 
-            // ✅ ONE call — ViewModel handles file + page count
             viewModel.setFileAndReadPages(context, file)
         }
-
-    /* ---------------- NAVIGATION ---------------- */
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onOrderSuccess()
     }
-
-    /* ---------------- UI STATE ---------------- */
 
     when (uiState.currentStep) {
 
@@ -126,8 +145,6 @@ fun CreateOrderScreen(
             SuccessScreen(onOrderSuccess)
     }
 
-    /* ---------------- ERROR ---------------- */
-
     uiState.error?.let {
         AlertDialog(
             onDismissRequest = {},
@@ -144,7 +161,6 @@ fun CreateOrderScreen(
 /* ---------------- SELECT OPTIONS -------------------*/
 /* -------------------------------------------------- */
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectOptionsContent(
     uiState: CreateOrderUiState,
@@ -157,96 +173,394 @@ fun SelectOptionsContent(
     onUrgentChange: (Boolean) -> Unit,
     onSubmit: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = Color(0xFF151419)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Header
+            Text(
+                text = "Create Print Order",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF878787),
+                modifier = Modifier.padding(16.dp)
+            )
 
-        Text("Create Print Order", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(16.dp))
+            // File Upload Card
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFF363636),
+                shadowElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    // File preview area
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .background(Color(0xFF696969), RoundedCornerShape(12.dp))
+                            .clickable { onFileSelect() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (uiState.selectedFile != null) {
+                            FilePreview(
+                                file = uiState.selectedFile,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                tint = Color(0xFFFF9500),
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
 
-        Button(onClick = onFileSelect, modifier = Modifier.fillMaxWidth()) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiState.selectedFile?.name ?: "Select PDF")
+                    }
 
-                if (uiState.pageCount > 0) {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(12.dp))
+
                     Text(
-                        text = "Pages detected: ${uiState.pageCount}",
-                        style = MaterialTheme.typography.bodySmall
+                        text = "Accepted formats: PDF, DOCX, JPG, PNG. Max 100MB per file.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFCACACA),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Options Card
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFF363636),
+                shadowElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    // Number of Copies
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Number of Copies",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable {
+                                        if (uiState.copies > 1) {
+                                            onCopiesChange(uiState.copies - 1)
+                                        }
+                                    },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFFF9500)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = "−",
+                                        color = Color.White,
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = uiState.copies.toString(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.width(40.dp),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Surface(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clickable { onCopiesChange(uiState.copies + 1) },
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFFF9500)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = "+",
+                                        color = Color.White,
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Color Mode
+                    Text(
+                        text = "Color Mode",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        uiState.printOptions?.colorModes?.forEach { colorMode ->
+                            val isSelected = uiState.selectedColorMode == colorMode
+
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(140.dp)
+                                    .clickable { onColorModeSelect(colorMode) },
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) Color(0xFFFFE3CF) else Color(0xFF696969),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    width = 2.dp,
+                                    color = if (isSelected) Color(0xFFFF9500) else Color(0xFF838383)
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    // Top check icon
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        contentAlignment = Alignment.TopEnd
+                                    ) {
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.Check,
+                                                contentDescription = "Selected",
+                                                tint = Color(0xFFFF9500),
+                                                modifier = Modifier.size(22.dp)
+                                            )
+                                        } else {
+                                            Spacer(modifier = Modifier.size(22.dp))
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Title section
+                                    Column(
+                                        modifier = Modifier.height(44.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = colorMode.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) Color.Black else Color.White,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+
+                                        Text(
+                                            text = "₹${colorMode.extraPrice}/page",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (isSelected) Color(0xFF1C1C1C) else Color(0xFFE9E9E9)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(12.dp))
+
+                                    // Color preview
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (colorMode.name.contains("Color", ignoreCase = true)) {
+                                            ColorDot(Color.Red)
+                                            ColorDot(Color.Blue)
+                                            ColorDot(Color.Green)
+                                        } else {
+                                            ColorDot(Color.Black)
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(18.dp)
+                                                    .clip(RoundedCornerShape(9.dp))
+                                                    .background(Color.White)
+                                                    .border(
+                                                        width = 1.5.dp,
+                                                        color = Color.Black,
+                                                        shape = RoundedCornerShape(9.dp)
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Paper Type Dropdown
+                    DropdownSection(
+                        label = "Paper Type",
+                        selected = uiState.selectedPaperType?.name ?: "",
+                        items = uiState.printOptions?.paperTypes ?: emptyList(),
+                        itemText = { "${it.name} - ₹${it.basePrice}" },
+                        onSelect = onPaperTypeSelect
+                    )
+                    Spacer(Modifier.height(24.dp))
+
+                    // Finish Type Dropdown
+                    DropdownSection(
+                        label = "Finish Type",
+                        selected = uiState.selectedFinishType?.name ?: "",
+                        items = uiState.printOptions?.finishTypes ?: emptyList(),
+                        itemText = { "${it.name} - ₹${it.extraPrice}" },
+                        onSelect = onFinishTypeSelect
+                    )
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Orientation
+                    Text(
+                        text = "Orientation",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        val orientations = listOf("Portrait", "Landscape")
+
+                        orientations.forEach { orientation ->
+                            val isSelected = uiState.orientation == orientation
+
+                            Surface(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = 80.dp)
+                                    .clickable { onOrientationChange(orientation) },
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) Color(0xFFFFE3CF) else Color(0xFF696969),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    width = 2.dp,
+                                    color = if (isSelected) Color(0xFFFF9500) else Color(0xFF838383)
+                                )
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = orientation,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isSelected) Color.Black else Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(100.dp))
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        DropdownSection(
-            label = "Paper Type",
-            selected = uiState.selectedPaperType?.name ?: "",
-            items = uiState.printOptions?.paperTypes ?: emptyList(),
-            itemText = { "${it.name} - ₹${it.basePrice}" },
-            onSelect = onPaperTypeSelect
-        )
-
-        DropdownSection(
-            label = "Color Mode",
-            selected = uiState.selectedColorMode?.name ?: "",
-            items = uiState.printOptions?.colorModes ?: emptyList(),
-            itemText = { "${it.name} - ₹${it.extraPrice}" },
-            onSelect = onColorModeSelect
-        )
-
-        DropdownSection(
-            label = "Finish Type",
-            selected = uiState.selectedFinishType?.name ?: "",
-            items = uiState.printOptions?.finishTypes ?: emptyList(),
-            itemText = { "${it.name} - ₹${it.extraPrice}" },
-            onSelect = onFinishTypeSelect
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
-            // 🔒 Pages locked (auto-detected)
-            OutlinedTextField(
-                value = uiState.pageCount.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Pages") },
-                modifier = Modifier.weight(1f)
-            )
-
-            OutlinedTextField(
-                value = uiState.copies.toString(),
-                onValueChange = { it.toIntOrNull()?.let(onCopiesChange) },
-                label = { Text("Copies") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        )
-        {
-            Text("Urgent Order \n ₹10")
-            Switch(uiState.isUrgent, onUrgentChange)
-        }
-
-        Spacer(Modifier.height(24.dp))
-
-        Button(
-            onClick = onSubmit,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = uiState.selectedFile != null
+        // Bottom Bar
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom
         ) {
-            Text("Place Order")
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFF1B1B1E),
+                shadowElevation = 8.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Total ${uiState.pageCount} pages",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFF56E0F)
+                        )
+                        Text(
+                            text = "₹${calculateTotal(uiState)}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+
+                    Button(
+                        onClick = onSubmit,
+                        enabled = uiState.selectedFile != null,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFF9500),
+                            disabledContainerColor = Color(0xFFE0E0E0)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .height(56.dp)
+                            .width(180.dp)
+                    ) {
+                        Text(
+                            text = "Proceed To Pay",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -266,56 +580,114 @@ private fun <T> DropdownSection(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it }
-    ) {
-        OutlinedTextField(
-            value = selected,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-            },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
+    val isSelected = selected.isNotEmpty()
+
+    Column {
+        // section title (same as Color Mode heading)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
-        ExposedDropdownMenu(
+        Spacer(Modifier.height(12.dp))
+
+        ExposedDropdownMenuBox(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onExpandedChange = { expanded = it }
         ) {
-            items.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(itemText(item)) },
-                    onClick = {
-                        onSelect(item)
-                        expanded = false
-                    }
+            Surface(
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .clickable { expanded = true },
+                shape = RoundedCornerShape(12.dp),
+                color = if (isSelected) Color(0xFFFFE3CF) else Color(0xFF696969),
+                border = BorderStroke(
+                    width = 2.dp,
+                    color = if (isSelected) Color(0xFFFF9500) else Color(0xFF838383)
                 )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (selected.isEmpty()) "Select $label" else selected,
+                        color = if (isSelected) Color.Black else Color.White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = null,
+                        tint = if (isSelected) Color.Black else Color.White
+                    )
+                }
+            }
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(Color(0xFF2C2C2C))
+            ) {
+                items.forEach { item ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = itemText(item),
+                                color = Color.White
+                            )
+                        },
+                        onClick = {
+                            onSelect(item)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
-
-    Spacer(Modifier.height(16.dp))
 }
+/* -------------------------------------------------- */
+/* ---------------- HELPERS -------------------------- */
+/* -------------------------------------------------- */
 
-/* -------------------------------------------------- */
-/* ---------------- UI HELPERS ----------------------- */
-/* -------------------------------------------------- */
+private fun calculateTotal(uiState: CreateOrderUiState): Int {
+    val paperPrice = uiState.selectedPaperType?.basePrice ?: 0
+    val colorPrice = uiState.selectedColorMode?.extraPrice ?: 0
+    val finishPrice = uiState.selectedFinishType?.extraPrice ?: 0
+    val urgentPrice = if (uiState.isUrgent) 10 else 0
+
+    return (paperPrice + colorPrice + finishPrice) * uiState.pageCount * uiState.copies + urgentPrice
+}
 
 @Composable
 private fun LoadingScreen(text: String) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF151419)),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator()
-            Spacer(Modifier.height(12.dp))
-            Text(text)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(
+                color = Color(0xFFFF9500),
+                strokeWidth = 3.dp
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = text,
+                color = Color(0xFFB5B5B5),
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }

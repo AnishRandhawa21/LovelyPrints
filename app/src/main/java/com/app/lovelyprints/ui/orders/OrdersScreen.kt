@@ -107,9 +107,9 @@ fun OrdersScreen(
 
             Surface(
                 shadowElevation = 6.dp,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(15.dp),
                 border = BorderStroke(1.dp, Color(0xFFFF9500)),
-                color = Color(0xFFF4F4F4),
+                color = Color(0xFF363636),
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
@@ -136,7 +136,7 @@ fun OrdersScreen(
                                     color = if (selectedTab == index)
                                         Color(0xFFFF9500)
                                     else
-                                        Color(0xFF151419)
+                                        Color(0xFFCECECE)
                                 )
                             }
                         )
@@ -183,10 +183,14 @@ fun OrdersScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
-                            onClick = { viewModel.loadOrders() }
+                            onClick = { viewModel.loadOrders() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFF9500)
+                            )
                         ) {
                             Text("Retry")
                         }
+
                     }
                 }
 

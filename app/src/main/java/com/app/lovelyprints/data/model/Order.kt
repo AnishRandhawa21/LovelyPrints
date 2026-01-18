@@ -98,3 +98,10 @@ data class OrderDocument(
 
     val copies: Int?
 )
+
+fun ColorMode.displayName(): String {
+    return when (name.trim()) {
+        "Black & White" -> "B&W"
+        else -> name
+    }
+}

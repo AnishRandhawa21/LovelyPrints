@@ -43,6 +43,8 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.onBackground,
         bottomBar = {
             if (currentRoute in bottomNavItems.map { it.route }) {
                 NavigationBar(

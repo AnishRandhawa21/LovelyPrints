@@ -16,6 +16,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+
+// ✅ Import for background
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
 
 import com.app.lovelyprints.di.AppContainer
 import com.app.lovelyprints.ui.auth.LoginScreen
@@ -27,11 +32,12 @@ import com.app.lovelyprints.ui.profile.ProfileScreen
 import com.app.lovelyprints.ui.splash.SplashScreen
 import com.app.lovelyprints.viewmodel.*
 
-private val enterFromRight = slideInHorizontally { it }
-private val exitToLeft = slideOutHorizontally { -it }
+// ✅ Faster animations to reduce white flash visibility
+private val enterFromRight = slideInHorizontally(animationSpec = tween(300)) { it }
+private val exitToLeft = slideOutHorizontally(animationSpec = tween(300)) { -it }
 
-private val enterFromLeft = slideInHorizontally { -it }
-private val exitToRight = slideOutHorizontally { it }
+private val enterFromLeft = slideInHorizontally(animationSpec = tween(300)) { -it }
+private val exitToRight = slideOutHorizontally(animationSpec = tween(300)) { it }
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -46,7 +52,8 @@ fun AppNavHost(
     AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        // ✅ CRITICAL FIX: Add dark background to prevent white flash during animations
+        modifier = modifier.background(Color(0xFF151419))
     ) {
 
         // ------------------------------------------------
@@ -55,7 +62,7 @@ fun AppNavHost(
 
         composable(
             route = Routes.Splash.route,
-            exitTransition = { fadeOut() }
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
         ) {
             SplashScreen(
                 viewModelFactory = SplashViewModelFactory(appContainer.tokenManager),
@@ -78,12 +85,12 @@ fun AppNavHost(
 
         composable(
             route = Routes.Login.route,
-            enterTransition = { fadeIn() },
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
             exitTransition = {
-                slideOutHorizontally { -it }
+                slideOutHorizontally(animationSpec = tween(300)) { -it }
             },
             popEnterTransition = {
-                slideInHorizontally { -it }
+                slideInHorizontally(animationSpec = tween(300)) { -it }
             }
         ) {
             LoginScreen(
@@ -105,10 +112,10 @@ fun AppNavHost(
         composable(
             route = Routes.Signup.route,
             enterTransition = {
-                slideInHorizontally { it }
+                slideInHorizontally(animationSpec = tween(300)) { it }
             },
             popExitTransition = {
-                slideOutHorizontally { it }
+                slideOutHorizontally(animationSpec = tween(300)) { it }
             }
         ) {
             SignupScreen(
@@ -133,7 +140,7 @@ fun AppNavHost(
 
         composable(
             route = Routes.Main.route,
-            enterTransition = { fadeIn() }
+            enterTransition = { fadeIn(animationSpec = tween(300)) }
         ) {
             navController.navigate(Routes.Home.route) {
                 popUpTo(Routes.Main.route) { inclusive = true }
@@ -142,10 +149,10 @@ fun AppNavHost(
 
         composable(
             route = Routes.Home.route,
-            enterTransition = { fadeIn() },
-            exitTransition = { fadeOut() },
-            popEnterTransition = { fadeIn() },
-            popExitTransition = { fadeOut() }
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { fadeOut(animationSpec = tween(300)) }
         ) {
             HomeScreen(
                 viewModelFactory = HomeViewModelFactory(appContainer.shopRepository),
@@ -157,10 +164,10 @@ fun AppNavHost(
 
         composable(
             route = Routes.Orders.route,
-            enterTransition = { fadeIn() },
-            exitTransition = { fadeOut() },
-            popEnterTransition = { fadeIn() },
-            popExitTransition = { fadeOut() }
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { fadeOut(animationSpec = tween(300)) }
         ) {
             OrdersScreen(
                 viewModelFactory = OrdersViewModelFactory(appContainer.orderRepository)
@@ -169,10 +176,10 @@ fun AppNavHost(
 
         composable(
             route = Routes.Profile.route,
-            enterTransition = { fadeIn() },
-            exitTransition = { fadeOut() },
-            popEnterTransition = { fadeIn() },
-            popExitTransition = { fadeOut() }
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+            popExitTransition = { fadeOut(animationSpec = tween(300)) }
         ) {
             ProfileScreen(
                 viewModelFactory = ProfileViewModelFactory(appContainer.authRepository),

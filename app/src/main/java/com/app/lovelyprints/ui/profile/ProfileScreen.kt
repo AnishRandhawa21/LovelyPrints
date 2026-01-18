@@ -9,7 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.lovelyprints.core.auth.TokenManager
 import com.app.lovelyprints.viewmodel.ProfileViewModel
@@ -30,25 +32,57 @@ fun ProfileScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Logout") },
-            text = { Text("Are you sure you want to logout?") },
+
+            // 🔲 popup background
+            containerColor = Color(0xFF2B2B2B),
+
+            // 📝 text colors
+            titleContentColor = Color.White,
+            textContentColor = Color(0xFFCCCCCC),
+
+            title = {
+                Text(
+                    text = "Logout",
+                    color = Color(0xFFFFFFFF),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+
+            text = {
+                Text(
+                    text = "Are you sure you want to logout?",
+                    color = Color(0xFF878787)
+                )
+            },
+
             confirmButton = {
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
                         viewModel.logout(onLogout)
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFFFF9500)
+                    )
                 ) {
                     Text("Logout")
                 }
             },
+
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
+                TextButton(
+                    onClick = { showLogoutDialog = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
                     Text("Cancel")
                 }
             }
         )
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -117,7 +151,11 @@ fun ProfileScreen(
 
                     TextButton(
                         onClick = { showLogoutDialog = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = Color(0xFFFF9500),        // normal
+                            disabledContentColor = Color(0xFF878787) // gray
+                        )
                     ) {
                         Text(
                             text = "Logout",
@@ -133,7 +171,7 @@ fun ProfileScreen(
             Text(
                 text = "Version 1.0.0",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color(0xFF878787)
             )
         }
     }

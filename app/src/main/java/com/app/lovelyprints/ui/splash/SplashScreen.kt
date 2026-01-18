@@ -62,7 +62,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1B1B1E)),
+            .background(Color(0xFF151419)), // ✅ Changed to match your app's background
         contentAlignment = Alignment.Center
     ) {
         // Logo
