@@ -14,7 +14,10 @@ data class Shop(
     val shopName: String,
 
     @SerializedName("block")
-    val block: String
+    val block: String,
+
+    @SerializedName("is_active")
+    val isActive: Boolean
 )
 
 /* -----------------------------

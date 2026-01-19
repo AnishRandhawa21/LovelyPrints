@@ -1,35 +1,25 @@
 package com.app.lovelyprints.utils
 
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+private val DISPLAY_FORMATTER =
+    DateTimeFormatter
+        .ofPattern("dd MMM • hh:mm a")
+        .withZone(ZoneId.systemDefault())
 
 fun formatOrderDate(date: String?): String? {
     if (date.isNullOrBlank()) return null
 
     return try {
 
-        // convert: 2026-02-01T14:32:11:23
-        // into:   2026-02-01T14:32:11.023
-        val normalized = date.replace(
-            Regex(":(\\d{2})$"),
-            ".0$1"
-        )
+        // ✅ Parses: 2026-01-19T11:25:02.943732+00:00
+        val offsetDateTime = OffsetDateTime.parse(date)
 
-        val input = SimpleDateFormat(
-            "yyyy-MM-dd'T'HH:mm:ss.SSS",
-            Locale.getDefault()
-        )
+        DISPLAY_FORMATTER.format(offsetDateTime.toInstant())
 
-        val output = SimpleDateFormat(
-            "dd MMM, hh:mm a",
-            Locale.getDefault()
-        )
-
-        output.format(input.parse(normalized)!!)
     } catch (e: Exception) {
         null
     }
 }
-
-

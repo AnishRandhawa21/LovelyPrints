@@ -3,8 +3,12 @@ package com.app.lovelyprints.ui.auth
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +23,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.lovelyprints.R
 import com.app.lovelyprints.viewmodel.AuthViewModel
 import com.app.lovelyprints.viewmodel.AuthViewModelFactory
-
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.input.VisualTransformation
 @Composable
 fun LoginScreen(
     viewModelFactory: AuthViewModelFactory,
@@ -31,6 +37,7 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -50,6 +57,7 @@ fun LoginScreen(
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize()
+
         )
 
 
@@ -58,11 +66,14 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars) // 👈 THIS is the fix
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
-        ) {
+        )
+        {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,28 +133,58 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                viewModel.clearError()
-            },
-            label = { Text("Password",color = Color(0xFFFBFBFB))},
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF56E0F),   // darker orange
-                unfocusedBorderColor = Color(0xFF424048), // normal orange
-                focusedLabelColor = Color(0xFFF56E0F),
-                cursorColor = Color(0xFF424048),
-                focusedTextColor = Color(0xFFFBFBFB),
-                unfocusedTextColor = Color(0xFFFBFBFB)
-            )
-        )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = {
+                        password = it
+                        viewModel.clearError()
+                    },
+                    label = { Text("Password", color = Color(0xFFFBFBFB)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
 
-        if (uiState.error != null) {
+                    visualTransformation = if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password
+                    ),
+
+                    trailingIcon = {
+
+                        val icon =
+                            if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff
+
+                        IconButton(
+                            onClick = { passwordVisible = !passwordVisible }
+                        ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = Color(0xFFFBFBFB)
+                            )
+                        }
+                    },
+
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFFF56E0F),
+                        unfocusedBorderColor = Color(0xFF424048),
+                        focusedLabelColor = Color(0xFFF56E0F),
+                        cursorColor = Color(0xFF424048),
+                        focusedTextColor = Color(0xFFFBFBFB),
+                        unfocusedTextColor = Color(0xFFFBFBFB)
+                    )
+                )
+
+
+
+                if (uiState.error != null) {
             Surface(
                 color = MaterialTheme.colorScheme.errorContainer,
                 shape = MaterialTheme.shapes.small,

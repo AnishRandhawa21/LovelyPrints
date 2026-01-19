@@ -285,7 +285,7 @@ fun SelectOptionsContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Number of Copies",
+                            text = "Number of Copies: ",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -428,9 +428,9 @@ fun SelectOptionsContent(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         if (colorMode.name.contains("Color", ignoreCase = true)) {
-                                            ColorDot(Color.Red)
-                                            ColorDot(Color.Blue)
-                                            ColorDot(Color.Green)
+                                            ColorDot(Color(0xFFEF5350))
+                                            ColorDot(Color(0xFF42A5F5))
+                                            ColorDot(Color(0xFF66BB6A))
                                         } else {
                                             ColorDot(Color.Black)
                                             Box(

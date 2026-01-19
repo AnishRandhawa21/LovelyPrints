@@ -119,3 +119,6 @@ enum class PrintOrientation(
 }
 
 
+fun String.lastSix(): String {
+    return if (length <= 6) this else takeLast(6)
+}

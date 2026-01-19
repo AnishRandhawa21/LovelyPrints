@@ -2,8 +2,11 @@ package com.app.lovelyprints.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +21,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.lovelyprints.R
 import com.app.lovelyprints.viewmodel.AuthViewModel
 import com.app.lovelyprints.viewmodel.AuthViewModelFactory
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.text.input.VisualTransformation
+import com.app.lovelyprints.utils.isValidPassword
 
 @Composable
 fun SignupScreen(
@@ -31,6 +38,10 @@ fun SignupScreen(
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordTouched by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
+    val isPasswordValid = isValidPassword(password)
+
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -49,6 +60,9 @@ fun SignupScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -133,23 +147,64 @@ fun SignupScreen(
                         value = password,
                         onValueChange = {
                             password = it
-                            viewModel.clearError()
+                            passwordTouched = true
                         },
-                        label = { Text("Password", color = Color(0xFFFBFBFB))},
-                        modifier = Modifier.fillMaxWidth(),
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        singleLine = true,
+                        label = { Text("Password", color = Color(0xFFFBFBFB)) },
+
+                        isError = passwordTouched && !isValidPassword(password),
+
+                        supportingText = {
+                            if (passwordTouched && !isValidPassword(password)) {
+                                Text("Password must be at least 8 characters")
+                            }
+                        },
+
+                        visualTransformation =
+                            if (passwordVisible)
+                                VisualTransformation.None
+                            else
+                                PasswordVisualTransformation(),
+
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password
+                        ),
+
+                        trailingIcon = {
+                            val icon =
+                                if (passwordVisible)
+                                    Icons.Default.Visibility
+                                else
+                                    Icons.Default.VisibilityOff
+
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible }
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFBFBFB)
+                                )
+                            }
+                        },
+
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF56E0F),   // darker orange
-                            unfocusedBorderColor = Color(0xFF424048), // normal orange
+                            focusedBorderColor = Color(0xFFF56E0F),
+                            unfocusedBorderColor = Color(0xFF424048),
                             focusedLabelColor = Color(0xFFF56E0F),
+
                             cursorColor = Color(0xFF424048),
 
                             focusedTextColor = Color(0xFFFBFBFB),
-                            unfocusedTextColor = Color(0xFFFBFBFB)
+                            unfocusedTextColor = Color(0xFFFBFBFB),
+
+                            // 🔥 THIS IS THE FIX
+                            errorTextColor = Color(0xFFFBFBFB),
+                            errorCursorColor = Color(0xFFFBFBFB)
                         )
+
                     )
+
+
 
                     if (uiState.error != null) {
                         Surface(
@@ -179,17 +234,14 @@ fun SignupScreen(
                             .fillMaxWidth()
                             .height(50.dp),
 
-                        // 🎯 Rounded corners for modern look
                         shape = RoundedCornerShape(12.dp),
 
-                        // 🎯 Natural Material elevation
                         elevation = ButtonDefaults.buttonElevation(
                             defaultElevation = 6.dp,
                             pressedElevation = 10.dp,
                             disabledElevation = 0.dp
                         ),
 
-                        // 🎯 Clean color system
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFF9500),
                             disabledContainerColor = Color(0xFFFEAE46),
@@ -197,11 +249,12 @@ fun SignupScreen(
                             disabledContentColor = Color.White.copy(alpha = 0.6f)
                         ),
 
-                        enabled = !uiState.isLoading &&
-                                name.isNotBlank() &&
-                                email.isNotBlank() &&
-                                password.isNotBlank()
-                    ) {
+                        enabled =
+                            !uiState.isLoading &&
+                                    name.isNotBlank() &&
+                                    email.isNotBlank() &&
+                                    isPasswordValid
+                    ){
 
                         if (uiState.isLoading) {
                             CircularProgressIndicator(

@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -46,15 +47,21 @@ fun HomeScreen(
 
     // ✅ SEARCH FILTER (FIX)
     val filteredShops = remember(searchQuery, uiState.shops) {
-        if (searchQuery.isBlank()) {
-            uiState.shops
-        } else {
-            uiState.shops.filter {
-                it.shopName.contains(searchQuery, ignoreCase = true) ||
-                        it.block.contains(searchQuery, ignoreCase = true)
+
+        val result =
+            if (searchQuery.isBlank()) {
+                uiState.shops
+            } else {
+                uiState.shops.filter {
+                    it.shopName.contains(searchQuery, ignoreCase = true) ||
+                            it.block.contains(searchQuery, ignoreCase = true)
+                }
             }
-        }
+
+        // ✅ active shops first, closed last
+        result.sortedBy { !it.isActive }
     }
+
 
     Column(
         modifier = Modifier
@@ -113,8 +120,10 @@ fun HomeScreen(
                     itemsIndexed(filteredShops) { index, shop ->
 
                         Pressable(
+                            enabled = shop.isActive,
                             onClick = { onShopClick(shop.id) }
-                        ) {
+                        )
+                        {
                             ShopCard(
                                 shop = shop,
                                 gradientColors = gradients[index % gradients.size]
@@ -193,12 +202,21 @@ fun ShopCard(
     shop: Shop,
     gradientColors: List<Color>
 ) {
-    val animatedBrush = rememberAnimatedGradient(gradientColors)
+    val isActive = shop.isActive
+    val animatedBrush =
+        if (isActive)
+            rememberAnimatedGradient(gradientColors)
+        else
+            Brush.linearGradient(
+                listOf(Color(0xFF3A3A3A), Color(0xFF1E1E1E))
+            )
+
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp),
+            .height(120.dp)
+            .alpha(if (isActive) 1f else 0.45f),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(6.dp)
@@ -228,7 +246,7 @@ fun ShopCard(
                     Text(
                         text = shop.shopName,
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color.White
+                        color = if (isActive) Color.White else Color.Gray
                     )
 
                     Spacer(Modifier.height(6.dp))
@@ -284,13 +302,14 @@ fun rememberAnimatedGradient(colors: List<Color>): Brush {
 // --------------------------------------------------
 @Composable
 fun Pressable(
+    enabled: Boolean = true,
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
     var pressed by remember { mutableStateOf(false) }
 
     val scale by animateFloatAsState(
-        if (pressed) 0.96f else 1f,
+        if (pressed && enabled) 0.96f else 1f,
         label = "press"
     )
 
@@ -300,7 +319,9 @@ fun Pressable(
                 scaleX = scale
                 scaleY = scale
             }
-            .pointerInput(Unit) {
+            .pointerInput(enabled) {
+                if (!enabled) return@pointerInput
+
                 detectTapGestures(
                     onPress = {
                         pressed = true
@@ -314,6 +335,7 @@ fun Pressable(
         content()
     }
 }
+
 
 // --------------------------------------------------
 // 💀 SKELETON

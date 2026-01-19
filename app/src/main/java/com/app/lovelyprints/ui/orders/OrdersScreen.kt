@@ -44,6 +44,11 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import com.app.lovelyprints.data.model.lastSix
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 
 
 /* -------------------------------------------------------------------------- */
@@ -358,11 +363,16 @@ fun ExpandableOrderCard(
                         color = Color.White
                     )
 
+                    Text(
+                        text = "ID: #${order.id.lastSix()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF9E9E9E)
+                    )
                     order.shop?.shopName?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFBDBDBD)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFFFFFFFF)
                         )
                     }
 
@@ -511,10 +521,19 @@ fun ExpandableOrderCard(
 fun OrderStatusChip(status: String) {
 
     val color = when (status.lowercase()) {
+
         "pending" -> Color(0xFF9C5A10)
+
+        "confirmed" -> Color(0xFF2E4A59)
+
         "processing" -> Color(0xFF2E4A59)
+
+        "ready" -> Color(0xFF1F5A3D)
+
         "completed" -> Color(0xFF1F5A3D)
+
         "cancelled" -> Color(0xFF6E2B2B)
+
         else -> Color(0xFF4F4F4F)
     }
 
@@ -530,6 +549,7 @@ fun OrderStatusChip(status: String) {
         )
     }
 }
+
 
 @Composable
 fun PaymentStatusChip(status: String) {
