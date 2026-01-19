@@ -25,6 +25,9 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
 import com.app.lovelyprints.utils.isValidPassword
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+
 
 @Composable
 fun SignupScreen(
@@ -34,6 +37,7 @@ fun SignupScreen(
 ) {
     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -45,9 +49,17 @@ fun SignupScreen(
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
+
+            Toast.makeText(
+                context,
+                "Verify your account via email before logging in",
+                Toast.LENGTH_LONG
+            ).show()
+
             onSignupSuccess()
         }
     }
+
     Box(modifier = Modifier.fillMaxSize()) {
 
         Image(

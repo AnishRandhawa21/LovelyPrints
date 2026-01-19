@@ -3,6 +3,7 @@ package com.app.lovelyprints.ui.home
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -31,10 +32,16 @@ import com.app.lovelyprints.data.model.Shop
 import com.app.lovelyprints.theme.Inter
 import com.app.lovelyprints.viewmodel.HomeViewModel
 import com.app.lovelyprints.viewmodel.HomeViewModelFactory
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 
 // --------------------------------------------------
 // 🏠 HOME SCREEN
 // --------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModelFactory: HomeViewModelFactory,
@@ -42,6 +49,8 @@ fun HomeScreen(
 ) {
     val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
+    val pullToRefreshState = rememberPullToRefreshState()
+
 
     var searchQuery by remember { mutableStateOf("") }
 
@@ -61,6 +70,20 @@ fun HomeScreen(
         // ✅ active shops first, closed last
         result.sortedBy { !it.isActive }
     }
+    PullToRefreshBox(
+        isRefreshing = uiState.isLoading,
+        onRefresh = { viewModel.loadShops() },
+        state = pullToRefreshState,
+        indicator = {
+            PullToRefreshDefaults.Indicator(
+                state = pullToRefreshState,
+                isRefreshing = uiState.isLoading,
+                modifier = Modifier.align(Alignment.TopCenter),
+                containerColor = Color(0xFF363636),
+                color = Color(0xFFFF9500)
+            )
+        }
+    ) {
 
 
     Column(
@@ -134,6 +157,7 @@ fun HomeScreen(
             }
         }
     }
+}
 }
 
 // --------------------------------------------------
@@ -306,35 +330,26 @@ fun Pressable(
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    var pressed by remember { mutableStateOf(false) }
-
-    val scale by animateFloatAsState(
-        if (pressed && enabled) 0.96f else 1f,
-        label = "press"
-    )
+    val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier = Modifier
             .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
+                scaleX = if (enabled) 1f else 1f
+                scaleY = if (enabled) 1f else 1f
             }
-            .pointerInput(enabled) {
-                if (!enabled) return@pointerInput
-
-                detectTapGestures(
-                    onPress = {
-                        pressed = true
-                        tryAwaitRelease()
-                        pressed = false
-                        onClick()
-                    }
-                )
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                onClick()
             }
     ) {
         content()
     }
 }
+
 
 
 // --------------------------------------------------
