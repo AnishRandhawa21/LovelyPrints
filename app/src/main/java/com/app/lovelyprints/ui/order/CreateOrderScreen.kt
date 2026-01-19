@@ -195,7 +195,8 @@ fun SelectOptionsContent(
 )
  {
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .imePadding(),
         color = Color(0xFF151419)
     ) {
         Column(

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 
 data class OrdersUiState(
     val isLoading: Boolean = false,
@@ -25,21 +26,19 @@ class OrdersViewModel(
     val uiState: StateFlow<OrdersUiState> = _uiState.asStateFlow()
 
     /** Prevents duplicate API calls */
-    private var isRequestRunning = false
+    private var loadJob: Job? = null
 
     /**
      * Load orders for current logged-in user
      */
     fun loadOrders() {
 
-        // ⛔ avoid duplicate network calls
-        if (isRequestRunning) return
+        // ⛔ Cancel previous job if still running and start new one
+        loadJob?.cancel()
 
-        isRequestRunning = true
+        loadJob = viewModelScope.launch {
 
-        viewModelScope.launch {
-
-            _uiState.value = OrdersUiState(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true)
 
             when (val result = orderRepository.getOrders()) {
 
@@ -66,18 +65,16 @@ class OrdersViewModel(
                 }
 
                 is Result.Error -> {
-                    _uiState.value = OrdersUiState(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = result.message
                     )
                 }
 
                 else -> {
-                    _uiState.value = OrdersUiState(isLoading = false)
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                 }
             }
-
-            isRequestRunning = false
         }
     }
 
@@ -85,7 +82,8 @@ class OrdersViewModel(
      * ✅ MUST be called on logout or account switch
      */
     fun clearOrders() {
-        isRequestRunning = false
+        loadJob?.cancel()
+        loadJob = null
         _uiState.value = OrdersUiState()
     }
 }

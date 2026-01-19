@@ -1,8 +1,14 @@
 package com.app.lovelyprints.ui.orders
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,17 +37,19 @@ import com.app.lovelyprints.theme.Inter
 import com.app.lovelyprints.utils.formatOrderDate
 import com.app.lovelyprints.viewmodel.OrdersViewModel
 import com.app.lovelyprints.viewmodel.OrdersViewModelFactory
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 
 
 /* -------------------------------------------------------------------------- */
 /*                                   SCREEN                                   */
 /* -------------------------------------------------------------------------- */
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrdersScreen(
     viewModelFactory: OrdersViewModelFactory
@@ -49,6 +57,17 @@ fun OrdersScreen(
 
     val viewModel: OrdersViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        if (uiState.currentOrders.isEmpty() &&
+            uiState.orderHistory.isEmpty()
+        ) {
+            viewModel.loadOrders()
+        }
+    }
+
+
+    val pullToRefreshState = rememberPullToRefreshState()
 
     var selectedTab by remember { mutableStateOf(0) }
     var expandedOrderId by remember { mutableStateOf<String?>(null) }
@@ -59,220 +78,160 @@ fun OrdersScreen(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFF151419)
     ) {
-        Column {
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp, bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Text(
-                    text = "Orders",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontFamily = Inter,
-                    color = Color(0xFF878787)
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = { viewModel.loadOrders() },
+            state = pullToRefreshState,
+            modifier = Modifier.fillMaxSize(),
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = uiState.isLoading,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    containerColor = Color(0xFF363636),
+                    color = Color(0xFFFF9500)
                 )
+            }
+        ) {
 
-                val infiniteTransition = rememberInfiniteTransition(label = "refresh")
+            Column {
 
-                val rotation by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(900)
-                    ),
-                    label = "rotation"
-                )
-
-                IconButton(
-                    onClick = { viewModel.loadOrders() },
-                    enabled = !uiState.isLoading
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 16.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh orders",
-                        tint = Color(0xFFFF9500),
-                        modifier =
-                            if (uiState.isLoading)
-                                Modifier.rotate(rotation)
-                            else
-                                Modifier
+
+                    Text(
+                        text = "Orders",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontFamily = Inter,
+                        color = Color(0xFF878787)
                     )
                 }
-            }
 
-            Surface(
-                shadowElevation = 6.dp,
-                shape = RoundedCornerShape(15.dp),
-                border = BorderStroke(1.dp, Color(0xFFFF9500)),
-                color = Color(0xFF363636),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp)
-            ) {
-                TabRow(
-                    selectedTabIndex = selectedTab,
-                    containerColor = Color.Transparent,
-                    contentColor = Color(0xFF878787),
-                    indicator = { tabPositions ->
-                        TabRowDefaults.Indicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = Color(0xFFFF9500)
-                        )
-                    }
+                Surface(
+                    shadowElevation = 6.dp,
+                    shape = RoundedCornerShape(15.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFF9500)),
+                    color = Color(0xFF363636),
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
                 ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTab == index,
-                            onClick = { selectedTab = index },
-                            text = {
-                                Text(
-                                    title,
-                                    color = if (selectedTab == index)
-                                        Color(0xFFFF9500)
-                                    else
-                                        Color(0xFFCECECE)
-                                )
-                            }
-                        )
-                    }
-                }
-
-            }
-
-            val orders =
-                if (selectedTab == 0)
-                    uiState.currentOrders
-                else
-                    uiState.orderHistory
-
-            when {
-
-                // ---------------- LOADING ----------------
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = Color(0xFFFF9500),
-                            strokeWidth = 3.dp
-                        )
-                    }
-                }
-
-                // ---------------- ERROR ----------------
-                uiState.error != null -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = uiState.error!!,
-                            color = MaterialTheme.colorScheme.error
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = { viewModel.loadOrders() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFF9500)
-                            )
-                        ) {
-                            Text("Retry")
-                        }
-
-                    }
-                }
-
-                // ---------------- EMPTY ----------------
-                orders.isEmpty() -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Text(
-                            text =
-                                if (selectedTab == 0)
-                                    "No current orders"
-                                else
-                                    "No order history",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.Gray
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = { viewModel.loadOrders() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFF9500)
-                            )
-                        ) {
-                            Text(
-                                text = "Refresh",
-                                color = Color.White
+                    TabRow(
+                        selectedTabIndex = selectedTab,
+                        containerColor = Color.Transparent,
+                        contentColor = Color(0xFF878787),
+                        indicator = { tabPositions ->
+                            TabRowDefaults.Indicator(
+                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                                color = Color(0xFFFF9500)
                             )
                         }
-                    }
-                }
-
-
-                // ---------------- CONTENT ----------------
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(
-                            items = orders,
-                            key = { order -> order.id }
-                        ) { order ->
-
-                            ExpandableOrderCard(
-                                order = order,
-                                expanded = expandedOrderId == order.id,
-                                onClick = {
-                                    expandedOrderId =
-                                        if (expandedOrderId == order.id) null
-                                        else order.id
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = selectedTab == index,
+                                onClick = { selectedTab = index },
+                                text = {
+                                    Text(
+                                        title,
+                                        color = if (selectedTab == index)
+                                            Color(0xFFFF9500)
+                                        else Color(0xFFCECECE)
+                                    )
                                 }
                             )
                         }
                     }
                 }
+
+                val orders =
+                    if (selectedTab == 0)
+                        uiState.currentOrders
+                    else
+                        uiState.orderHistory
+
+                when {
+
+                    uiState.isLoading &&
+                            uiState.currentOrders.isEmpty() &&
+                            uiState.orderHistory.isEmpty() -> {
+
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(6) {
+                                SkeletonOrderCard()
+                            }
+                        }
+                    }
+
+                    uiState.error != null -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = uiState.error!!,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
+                    orders.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text =
+                                    if (selectedTab == 0)
+                                        "No current orders"
+                                    else
+                                        "No order history",
+                                color = Color.Gray
+                            )
+                        }
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = orders,
+                                key = { it.id }
+                            ) { order ->
+                                ExpandableOrderCard(
+                                    order = order,
+                                    expanded = expandedOrderId == order.id,
+                                    onClick = {
+                                        expandedOrderId =
+                                            if (expandedOrderId == order.id) null
+                                            else order.id
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
             }
-
-
         }
     }
 }
-@Composable
-fun LoadingView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            color = Color(0xFFFF9500),
-            strokeWidth = 3.dp
-        )
-    }
-}
+
 /* -------------------------------------------------------------------------- */
 /*                              OTP                                           */
 /* -------------------------------------------------------------------------- */
@@ -442,7 +401,7 @@ fun ExpandableOrderCard(
                 Column {
 
                     Spacer(Modifier.height(12.dp))
-                    Divider(color = Color(0xFF878787))
+                    HorizontalDivider(color = Color(0xFF878787))
                     Spacer(Modifier.height(12.dp))
 
                     //Description
@@ -514,7 +473,7 @@ fun ExpandableOrderCard(
                         Column {
 
                             Spacer(Modifier.height(12.dp))
-                            Divider(color = Color(0xFF878787))
+                            HorizontalDivider(color = Color(0xFF878787))
                             Spacer(Modifier.height(12.dp))
 
                             PickupOtpBox(
@@ -542,6 +501,7 @@ fun ExpandableOrderCard(
         }
     }
 }
+
 
 /* -------------------------------------------------------------------------- */
 /*                                   CHIPS                                    */
@@ -592,4 +552,83 @@ fun PaymentStatusChip(status: String) {
             color = Color.White
         )
     }
+}
+
+@Composable
+fun SkeletonOrderCard() {
+
+    val shimmer = rememberShimmerBrush()
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1E1E1E)
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+
+            Column {
+                Box(
+                    modifier = Modifier
+                        .height(18.dp)
+                        .fillMaxWidth(0.5f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(shimmer)
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                Box(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .fillMaxWidth(0.35f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(shimmer)
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .height(24.dp)
+                    .width(80.dp)
+                    .align(Alignment.TopEnd)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(shimmer)
+            )
+        }
+    }
+}
+@Composable
+fun rememberShimmerBrush(): Brush {
+
+    val transition = rememberInfiniteTransition(label = "shimmer")
+
+    val x by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1200,
+                easing = LinearEasing
+            )
+        ),
+        label = "x"
+    )
+
+    return Brush.linearGradient(
+        colors = listOf(
+            Color(0xFF2A2A2A),
+            Color(0xFF3A3A3A),
+            Color(0xFF2A2A2A)
+        ),
+        start = Offset(x - 300f, 0f),
+        end = Offset(x, 600f)
+    )
 }

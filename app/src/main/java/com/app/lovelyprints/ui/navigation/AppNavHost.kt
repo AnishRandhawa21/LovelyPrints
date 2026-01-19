@@ -216,7 +216,7 @@ fun AppNavHost(
                 onOrderSuccess = {
                     navController.navigate(Routes.Orders.route) {
                         popUpTo(Routes.Home.route) {
-                            inclusive = false
+                            inclusive = true
                         }
                         launchSingleTop = true
                     }
