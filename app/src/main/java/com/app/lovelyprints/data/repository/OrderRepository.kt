@@ -20,7 +20,7 @@ class OrderRepository(
     suspend fun createOrder(
         shopId: String,
         description: String,
-        orientation: String,
+        orientation: PrintOrientation,
         isUrgent: Boolean
     ): Result<CreateOrderResponse> {
         return try {
@@ -32,7 +32,6 @@ class OrderRepository(
                     isUrgent = isUrgent
                 )
             )
-
             if (!response.isSuccessful) {
                 Log.e("ORDER_REPO", "Create order failed: ${response.code()} - ${response.errorBody()?.string()}")
                 return when (response.code()) {

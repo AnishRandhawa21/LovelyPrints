@@ -72,7 +72,7 @@ fun AppNavHost(
                     }
                 },
                 onNavigateToMain = {
-                    navController.navigate(Routes.Main.route) {
+                    navController.navigate(Routes.Home.route) {
                         popUpTo(Routes.Splash.route) { inclusive = true }
                     }
                 }
@@ -215,9 +215,13 @@ fun AppNavHost(
                 ),
                 onOrderSuccess = {
                     navController.navigate(Routes.Orders.route) {
-                        popUpTo(Routes.Home.route)
+                        popUpTo(Routes.Home.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
                     }
                 }
+
             )
         }
     }

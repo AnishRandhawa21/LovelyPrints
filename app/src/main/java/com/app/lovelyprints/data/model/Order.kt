@@ -9,7 +9,7 @@ data class CreateOrderRequest(
     val shopId: String,
 
     val description: String,
-    val orientation: String,
+    val orientation: PrintOrientation,
 
     @SerializedName("is_urgent")
     val isUrgent: Boolean
@@ -50,7 +50,7 @@ data class Order(
 
     val status: String,
 
-    val orientation: String?,
+    val orientation: PrintOrientation?,
 
     @SerializedName("is_urgent")
     val isUrgent: Boolean?,
@@ -105,3 +105,17 @@ fun ColorMode.displayName(): String {
         else -> name
     }
 }
+
+enum class PrintOrientation(
+    @SerializedName("portrait")
+    val apiValue: String,
+    val displayName: String
+) {
+    @SerializedName("portrait")
+    PORTRAIT("portrait", "Portrait"),
+
+    @SerializedName("landscape")
+    LANDSCAPE("landscape", "Landscape")
+}
+
+

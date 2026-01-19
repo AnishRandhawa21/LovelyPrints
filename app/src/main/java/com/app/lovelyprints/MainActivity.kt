@@ -49,45 +49,19 @@
                     FixSystemBars(enabled = true)
 
                     val navController = rememberNavController()
-                    var showSplash by remember { mutableStateOf(true) }
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background)
-                    ) {
+                    MainScreen(navController = navController) { padding ->
 
-                        if (showSplash) {
-
-                            AppNavHost(
-                                navController = navController,
-                                startDestination = Routes.Splash.route,
-                                appContainer = (application as LovelyPrintsApp).appContainer,
-                                modifier = Modifier.fillMaxSize()
-                            )
-
-                            LaunchedEffect(Unit) {
-                                navController.addOnDestinationChangedListener { _, destination, _ ->
-                                    if (destination.route != Routes.Splash.route) {
-                                        showSplash = false
-                                    }
-                                }
-                            }
-
-                        } else {
-
-                            MainScreen(navController = navController) { paddingModifier ->
-                                AppNavHost(
-                                    navController = navController,
-                                    startDestination = Routes.Splash.route,
-                                    appContainer = (application as LovelyPrintsApp).appContainer,
-                                    modifier = paddingModifier
-                                )
-                            }
-                        }
+                        AppNavHost(
+                            navController = navController,
+                            startDestination = Routes.Splash.route,
+                            appContainer = (application as LovelyPrintsApp).appContainer,
+                            modifier = padding
+                        )
                     }
                 }
             }
+
         }
 
         // --------------------------------------------------

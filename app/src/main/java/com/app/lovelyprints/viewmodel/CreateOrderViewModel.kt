@@ -20,13 +20,14 @@ import com.app.lovelyprints.utils.PdfUtils
 data class CreateOrderUiState(
     val isLoading: Boolean = false,
     val printOptions: PrintOptions? = null,
+    val description: String = "",
     val selectedFile: File? = null,
     val selectedPaperType: PaperType? = null,
     val selectedColorMode: ColorMode? = null,
     val selectedFinishType: FinishType? = null,
     val pageCount: Int = 1,
     val copies: Int = 1,
-    val orientation: String = "portrait",
+    val orientation: PrintOrientation = PrintOrientation.PORTRAIT,
     val isUrgent: Boolean = false,
     val error: String? = null,
     val isSuccess: Boolean = false,
@@ -129,12 +130,16 @@ class CreateOrderViewModel(
         _uiState.value = _uiState.value.copy(copies = copies)
     }
 
-    fun setOrientation(orientation: String) {
+    fun setOrientation(orientation: PrintOrientation) {
         _uiState.value = _uiState.value.copy(orientation = orientation)
     }
-
     fun setUrgent(isUrgent: Boolean) {
         _uiState.value = _uiState.value.copy(isUrgent = isUrgent)
+    }
+    fun setDescription(value: String) {
+        _uiState.value = _uiState.value.copy(
+            description = value
+        )
     }
 
     /* ---------------- ORDER FLOW ---------------- */
@@ -191,7 +196,7 @@ class CreateOrderViewModel(
 
             val orderResult = orderRepository.createOrder(
                 shopId = shopId,
-                description = "Print order",
+                description = state.description.ifBlank { "Print order" },
                 orientation = state.orientation,
                 isUrgent = state.isUrgent
             )

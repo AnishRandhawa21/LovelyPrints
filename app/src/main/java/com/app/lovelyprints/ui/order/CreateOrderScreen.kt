@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -111,8 +112,10 @@ fun CreateOrderScreen(
                 onCopiesChange = viewModel::setCopies,
                 onOrientationChange = viewModel::setOrientation,
                 onUrgentChange = viewModel::setUrgent,
+                onDescriptionChange = viewModel::setDescription, // ✅ FIX
                 onSubmit = {
-                    if (activity == null) return@SelectOptionsContent
+
+                if (activity == null) return@SelectOptionsContent
 
                     viewModel.submitOrder { razorpayOrderId, amount ->
                         startRazorpayPayment(
@@ -185,10 +188,12 @@ fun SelectOptionsContent(
     onColorModeSelect: (ColorMode) -> Unit,
     onFinishTypeSelect: (FinishType) -> Unit,
     onCopiesChange: (Int) -> Unit,
-    onOrientationChange: (String) -> Unit,
+    onOrientationChange: (PrintOrientation) -> Unit,
     onUrgentChange: (Boolean) -> Unit,
+    onDescriptionChange: (String) -> Unit, // ✅ ADD
     onSubmit: () -> Unit
-) {
+)
+ {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFF151419)
@@ -467,7 +472,7 @@ fun SelectOptionsContent(
                     )
 
                     Spacer(Modifier.height(24.dp))
-
+                    
                     // Orientation
                     Text(
                         text = "Orientation",
@@ -482,19 +487,20 @@ fun SelectOptionsContent(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val orientations = listOf("Portrait", "Landscape")
+                        PrintOrientation.values().forEach { orientation ->
 
-                        orientations.forEach { orientation ->
                             val isSelected = uiState.orientation == orientation
 
                             Surface(
                                 modifier = Modifier
                                     .weight(1f)
                                     .heightIn(min = 80.dp)
-                                    .clickable { onOrientationChange(orientation) },
+                                    .clickable {
+                                        onOrientationChange(orientation)
+                                    },
                                 shape = RoundedCornerShape(12.dp),
                                 color = if (isSelected) Color(0xFFFFE3CF) else Color(0xFF696969),
-                                border = androidx.compose.foundation.BorderStroke(
+                                border = BorderStroke(
                                     width = 2.dp,
                                     color = if (isSelected) Color(0xFFFF9500) else Color(0xFF838383)
                                 )
@@ -506,7 +512,7 @@ fun SelectOptionsContent(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = orientation,
+                                        text = orientation.displayName,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = if (isSelected) Color.Black else Color.White
@@ -515,6 +521,18 @@ fun SelectOptionsContent(
                             }
                         }
                     }
+
+                    //Discription
+
+                    Spacer(Modifier.height(24.dp))
+
+                    DescriptionSection(
+                        value = uiState.description,
+                        onValueChange = onDescriptionChange
+                    )
+
+
+
                 }
             }
 
@@ -768,4 +786,57 @@ private fun getFileName(context: Context, uri: Uri): String {
         }
     }
     return "document.pdf"
+}
+
+//Discription
+@Composable
+fun DescriptionSection(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Column {
+
+        Text(
+            text = "Order Notes",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = Color(0xFF696969),
+            border = BorderStroke(
+                width = 1.dp,
+                color = Color(0xFF838383)
+            )
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                minLines = 3,
+                maxLines = 5,
+                textStyle = LocalTextStyle.current.copy(
+                    color = Color.White,
+                    fontSize = 14.sp
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) { innerTextField ->
+
+                if (value.isEmpty()) {
+                    Text(
+                        text = "Any special instructions? (optional)",
+                        color = Color.LightGray
+                    )
+                }
+
+                innerTextField()
+            }
+        }
+    }
 }

@@ -1,7 +1,8 @@
 package com.app.lovelyprints.ui.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -14,12 +15,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.app.lovelyprints.R
 import com.app.lovelyprints.data.model.Shop
 import com.app.lovelyprints.theme.Inter
 import com.app.lovelyprints.viewmodel.HomeViewModel
@@ -36,136 +42,82 @@ fun HomeScreen(
     val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
 
-    // 🔍 Search state
     var searchQuery by remember { mutableStateOf("") }
 
-    Box(
+    // ✅ SEARCH FILTER (FIX)
+    val filteredShops = remember(searchQuery, uiState.shops) {
+        if (searchQuery.isBlank()) {
+            uiState.shops
+        } else {
+            uiState.shops.filter {
+                it.shopName.contains(searchQuery, ignoreCase = true) ||
+                        it.block.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF151419),
-                        Color(0xFF151419)
-                    )
-                )
-            )
+            .background(Color(0xFF151419))
+            .padding(16.dp)
     ) {
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            // --------------------------------------------------
-            // TITLE
-            // --------------------------------------------------
-            Text(
-                text = "Available Shops",
-                style = MaterialTheme.typography.headlineLarge,
-                fontFamily = Inter,
-                modifier = Modifier.padding(bottom = 10.dp),
-                color = Color(0xFF878787)
-            )
-            // --------------------------------------------------
-            // 🔍 FANCY SEARCH BAR
-            // --------------------------------------------------
-            FancySearchBar(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                onClearClick = { searchQuery = "" }
-            )
+        Text(
+            text = "Available Shops",
+            style = MaterialTheme.typography.headlineLarge,
+            fontFamily = Inter,
+            color = Color(0xFF878787)
+        )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
 
-            when {
-                // --------------------------------------------------
-                // LOADING
-                // --------------------------------------------------
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            color = Color(0xFFFF9500),
-                            strokeWidth = 3.dp
-                        )
-                    }
+        FancySearchBar(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            onClearClick = { searchQuery = "" }
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        when {
+            uiState.isLoading -> {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    items(6) { SkeletonShopCard() }
                 }
+            }
 
-                // --------------------------------------------------
-                // ERROR
-                // --------------------------------------------------
-                uiState.error != null -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = uiState.error ?: "Something went wrong",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.loadShops() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFF9500)
-                            )) {
-                            Text("Retry")
-                        }
-                    }
-                }
-
-                // --------------------------------------------------
-                // EMPTY
-                // --------------------------------------------------
-                uiState.shops.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No shops available")
-                    }
-                }
-
-                // --------------------------------------------------#878787
-                // CONTENT
-                // --------------------------------------------------
-                else -> {
-
-                    // 🎨 Gradient sets for cards
-                    val cardGradients = listOf(
-                        listOf(Color(0xFFE88504), Color(0xFFFF9500)),
-                        listOf(Color(0xFFFF9500), Color(0xFFE88504)),
-                        listOf(Color(0xFFE88504), Color(0xFFFF9500))
+            filteredShops.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "No matching shops",
+                        color = Color.Gray
                     )
+                }
+            }
 
-                    // 🔍 Reorder list so matches come first
-                    val sortedShops = uiState.shops.sortedWith(
-                        compareByDescending<Shop> {
-                            it.shopName.contains(searchQuery, ignoreCase = true)
-                        }
-                    )
+            else -> {
 
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        itemsIndexed(sortedShops) { index, shop ->
+                val gradients = listOf(
+                    listOf(Color(0xFFFF952F), Color(0xFFFFAF50)),
+                    listOf(Color(0xFFFFAF50), Color(0xFFFF952F)),
+                    listOf(Color(0xFFFF952F), Color(0xFFFFAF50))
+                )
 
-                            val gradientColors =
-                                cardGradients[index % cardGradients.size]
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    itemsIndexed(filteredShops) { index, shop ->
 
-                            val brush = Brush.linearGradient(
-                                colors = gradientColors,
-                                start = Offset(500f, 700f),   // bottom
-                                end = Offset(200f, 0f)     // top-right
-                            )
-
+                        Pressable(
+                            onClick = { onShopClick(shop.id) }
+                        ) {
                             ShopCard(
                                 shop = shop,
-                                backgroundBrush = brush,
-                                onClick = { onShopClick(shop.id) }
+                                gradientColors = gradients[index % gradients.size]
                             )
                         }
                     }
@@ -176,7 +128,7 @@ fun HomeScreen(
 }
 
 // --------------------------------------------------
-// 🔍 FANCY SEARCH BAR (like your image)
+// 🔍 SEARCH BAR
 // --------------------------------------------------
 @Composable
 fun FancySearchBar(
@@ -187,35 +139,31 @@ fun FancySearchBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp),
-        contentAlignment = Alignment.Center
+            .height(56.dp)
+            .background(Color(0xFF363636), RoundedCornerShape(30.dp))
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(
-                    color = Color(0xFF363636),
-                    shape = RoundedCornerShape(30.dp)
-                )
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.CenterStart
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize()
         ) {
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize()
+            Icon(Icons.Default.Search, null, tint = Color(0xFFF56E0F))
+
+            Spacer(Modifier.width(8.dp))
+
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart
             ) {
 
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                    tint = Color(0xFFF56E0F),
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-
-                Spacer(Modifier.width(8.dp))
+                if (value.isEmpty()) {
+                    Text(
+                        "Search shop",
+                        color = Color.Gray
+                    )
+                }
 
                 BasicTextField(
                     value = value,
@@ -224,25 +172,13 @@ fun FancySearchBar(
                     textStyle = LocalTextStyle.current.copy(
                         color = Color.White
                     ),
-                    modifier = Modifier.weight(1f)
-                ) { innerTextField ->
-                    if (value.isEmpty()) {
-                        Text(
-                            "Search shop...",
-                            color = Color.Gray
-                        )
-                    }
-                    innerTextField()
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-                if (value.isNotEmpty()) {
-                    IconButton(onClick = onClearClick) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
-                    }
+            if (value.isNotEmpty()) {
+                IconButton(onClick = onClearClick) {
+                    Icon(Icons.Default.Close, null, tint = Color.Gray)
                 }
             }
         }
@@ -250,60 +186,209 @@ fun FancySearchBar(
 }
 
 // --------------------------------------------------
-// 🧩 SHOP CARD
+// ✨ SHOP CARD
 // --------------------------------------------------
 @Composable
 fun ShopCard(
     shop: Shop,
-    backgroundBrush: Brush,
-    onClick: () -> Unit
+    gradientColors: List<Color>
 ) {
+    val animatedBrush = rememberAnimatedGradient(gradientColors)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .background(
-                brush = backgroundBrush,
-                shape = RoundedCornerShape(12.dp)
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        ),
-        shape = RoundedCornerShape(12.dp)
+            .height(120.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
-        Column(
+
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
+                .clip(RoundedCornerShape(20.dp))
+                .background(animatedBrush)
+                .border(
+                    1.dp,
+                    Color.White.copy(alpha = 0.15f),
+                    RoundedCornerShape(20.dp)
+                )
+        ) {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Column(Modifier.weight(1f)) {
+
+                    Text(
+                        text = shop.shopName,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
+
+                    Spacer(Modifier.height(6.dp))
+
+                    Text(
+                        text = "Block: ${shop.block}",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = Color.White.copy(alpha = 0.95f),
+                            shadow = Shadow(
+                                color = Color(0xFFF57C00).copy(alpha = 0.6f),
+                                offset = Offset(1.5f, 1.5f),
+                                blurRadius = 4f
+                            )
+                        )
+                    )
+                }
+
+                Image(
+                    painter = painterResource(R.drawable.shop),
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp)
+                )
+            }
+        }
+    }
+}
+
+// --------------------------------------------------
+// 🎨 ANIMATED GRADIENT
+// --------------------------------------------------
+@Composable
+fun rememberAnimatedGradient(colors: List<Color>): Brush {
+    val transition = rememberInfiniteTransition(label = "gradient")
+
+    val shift by transition.animateFloat(
+        0f,
+        600f,
+        infiniteRepeatable(
+            animation = tween(14000, easing = LinearEasing)
+        ),
+        label = "shift"
+    )
+
+    return Brush.linearGradient(
+        colors = colors,
+        start = Offset(shift, shift),
+        end = Offset(shift + 600f, shift + 600f)
+    )
+}
+
+// --------------------------------------------------
+// 👆 PRESS ANIMATION
+// --------------------------------------------------
+@Composable
+fun Pressable(
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    var pressed by remember { mutableStateOf(false) }
+
+    val scale by animateFloatAsState(
+        if (pressed) 0.96f else 1f,
+        label = "press"
+    )
+
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        pressed = true
+                        tryAwaitRelease()
+                        pressed = false
+                        onClick()
+                    }
+                )
+            }
+    ) {
+        content()
+    }
+}
+
+// --------------------------------------------------
+// 💀 SKELETON
+// --------------------------------------------------
+@Composable
+fun SkeletonShopCard() {
+    val shimmer = rememberShimmerBrush()
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .padding(16.dp)
         ) {
 
-            // -------- Title with shadow --------
-            Text(
-                text = shop.shopName,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    color = Color.White,
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.35f),
-                        offset = Offset(1.5f, 1.5f),
-                        blurRadius = 6f
-                    )
+            Column {
+                Box(
+                    modifier = Modifier
+                        .height(22.dp)
+                        .fillMaxWidth(0.6f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(shimmer)
                 )
-            )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(Modifier.height(12.dp))
 
-            // -------- Subtitle with softer shadow --------
-            Text(
-                text = "Block: ${shop.block}",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color.White,
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.35f),
-                        offset = Offset(1f, 1f),
-                        blurRadius = 4f
-                    )
+                Box(
+                    modifier = Modifier
+                        .height(16.dp)
+                        .fillMaxWidth(0.4f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(shimmer)
                 )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(70.dp)
+                    .align(Alignment.CenterEnd)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(shimmer)
             )
         }
     }
+}
+
+// --------------------------------------------------
+// ✨ SHIMMER BRUSH
+// --------------------------------------------------
+@Composable
+fun rememberShimmerBrush(): Brush {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+
+    val x by transition.animateFloat(
+        0f,
+        1000f,
+        infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing)
+        ),
+        label = "x"
+    )
+
+    return Brush.linearGradient(
+        listOf(
+            Color(0xFF2A2A2A),
+            Color(0xFF3A3A3A),
+            Color(0xFF2A2A2A)
+        ),
+        start = Offset(x - 300f, 0f),
+        end = Offset(x, 600f)
+    )
 }
