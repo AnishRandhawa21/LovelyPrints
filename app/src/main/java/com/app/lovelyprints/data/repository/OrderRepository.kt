@@ -195,7 +195,7 @@ class OrderRepository(
                 return when (response.code()) {
                     400 -> Result.Error("Invalid order. Error: $errorBody")
                     401, 403 -> Result.Error("Session expired. Please login again.")
-                    404 -> Result.Error("Order not found.")
+                    404 -> Result.Error("Retry")
                     500 -> Result.Error("Server error. Please try again later.")
                     else -> Result.Error("Payment creation failed: $errorBody")
                 }

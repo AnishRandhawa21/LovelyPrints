@@ -1,6 +1,7 @@
 package com.app.lovelyprints.ui.orders
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,9 +46,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import com.app.lovelyprints.data.model.lastSix
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+
 
 
 
@@ -221,6 +222,7 @@ fun OrdersScreen(
                                 ExpandableOrderCard(
                                     order = order,
                                     expanded = expandedOrderId == order.id,
+                                    isHistory = selectedTab == 1, // 👈 THIS LINE
                                     onClick = {
                                         expandedOrderId =
                                             if (expandedOrderId == order.id) null
@@ -325,8 +327,10 @@ fun StrokedText(
 fun ExpandableOrderCard(
     order: Order,
     expanded: Boolean,
+    isHistory: Boolean,   // 👈 ADD THIS
     onClick: () -> Unit
-) {
+)
+ {
 
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
@@ -336,7 +340,6 @@ fun ExpandableOrderCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .animateContentSize()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFF363636)
@@ -404,81 +407,110 @@ fun ExpandableOrderCard(
 
             AnimatedVisibility(
                 visible = expanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
 
+                enter =
+                    fadeIn(
+                        animationSpec = tween(
+                            durationMillis = 200,
+                            easing = LinearOutSlowInEasing
+                        )
+                    ) +
+                            expandVertically(
+                                animationSpec = tween(
+                                    durationMillis = 360,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ),
+
+                exit =
+                    fadeOut(
+                        animationSpec = tween(
+                            durationMillis = 180,
+                            easing = FastOutLinearInEasing
+                        )
+                    ) +
+                            shrinkVertically(
+                                animationSpec = tween(
+                                    durationMillis = 380,
+                                    easing = FastOutLinearInEasing
+                                )
+                            )
+            )
+            {
                 Column {
 
+                    if(!isHistory) {
                     Spacer(Modifier.height(12.dp))
                     HorizontalDivider(color = Color(0xFF878787))
                     Spacer(Modifier.height(12.dp))
 
                     //Description
 
-                    Column {
+                        Column {
 
-                        Text(
-                            text = "Description",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFFFFFFFF)
-                        )
+                            Text(
+                                text = "Description",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color(0xFFFFFFFF)
+                            )
 
-                        Spacer(modifier = Modifier.height(2.dp))
+                            Spacer(modifier = Modifier.height(2.dp))
 
-                        Text(
-                            text = order.notes ?: "No notes",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFB0B0B0),
-                            lineHeight = 18.sp
-                        )
+                            Text(
+                                text = order.notes ?: "No notes",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFB0B0B0),
+                                lineHeight = 18.sp
+                            )
+                        }
                     }
 
 
                     Spacer(Modifier.height(10.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-
-                        //AMOUNT
-
+                    if (!isHistory) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
 
-                            Text(
-                                text = "Amount:",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
+                            //AMOUNT
 
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
 
-                            StrokedText(
-                                text = "₹${order.totalPrice}",
-                                textColor = Color(0xFFFBFFFD),
-                                strokeColor = Color(0xFF1D6A2B),
-                                strokeWidth = 5.5f
+                                Text(
+                                    text = "Amount:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White
+                                )
+
+                                Spacer(modifier = Modifier.width(6.dp))
+
+                                StrokedText(
+                                    text = "₹${order.totalPrice}",
+                                    textColor = Color(0xFFFBFFFD),
+                                    strokeColor = Color(0xFF1D6A2B),
+                                    strokeWidth = 5.5f
+                                )
+                            }
+
+                            PaymentStatusChip(
+                                if (order.isPaid) "paid" else "pending"
                             )
                         }
-
-                        PaymentStatusChip(
-                            if (order.isPaid) "paid" else "pending"
-                        )
                     }
                     // ================= OTP (READY STATE) =================
 
                     AnimatedVisibility(
-                        visible =
-                            expanded &&
-                                    order.status == "ready" &&
-                                    !order.otpVerified &&
-                                    !order.deliveryOtp.isNullOrBlank(),
-                        enter = fadeIn() + expandVertically(),
-                        exit = fadeOut() + shrinkVertically()
-                    ) {
+                        visible = expanded &&
+                                order.status == "ready" &&
+                                !order.otpVerified &&
+                                !order.deliveryOtp.isNullOrBlank(),
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    )
+                    {
 
                         Column {
 
@@ -491,21 +523,33 @@ fun ExpandableOrderCard(
                             )
                         }
                     }
+                    if (!isHistory) {
 
+                        order.documents?.firstOrNull()?.let { doc ->
 
-                    order.documents?.firstOrNull()?.let { doc ->
+                            Spacer(Modifier.height(8.dp))
 
-                        Spacer(Modifier.height(8.dp))
-
-                        Text(
-                            text =
-                                "${doc.fileName ?: "Document"} • " +
-                                        "${doc.pageCount ?: 0} pages • " +
-                                        "${doc.copies ?: 1} copies",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFCCCCCC)
-                        )
+                            Text(
+                                text =
+                                    "${doc.fileName ?: "Document"} • " +
+                                            "${doc.pageCount ?: 0} pages • " +
+                                            "${doc.copies ?: 1} copies",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFCCCCCC)
+                            )
+                        }
                     }
+                    // ================= HISTORY BILL =================
+
+                    if (isHistory) {
+
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(color = Color(0xFF878787))
+                        Spacer(Modifier.height(12.dp))
+
+                        OrderBillSection(order)
+                    }
+
                 }
             }
         }
@@ -652,3 +696,103 @@ fun rememberShimmerBrush(): Brush {
         end = Offset(x, 600f)
     )
 }
+
+//Billing system
+
+@Composable
+fun BillRow(
+    title: String,
+    value: String,
+    bold: Boolean = false
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = if (bold)
+                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            else
+                MaterialTheme.typography.bodySmall,
+            color = Color.White
+        )
+
+        Text(
+            text = value,
+            style = if (bold)
+                MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+            else
+                MaterialTheme.typography.bodySmall,
+            color = Color.White
+        )
+    }
+}
+
+//Bill breakdown composable
+@Composable
+fun OrderBillSection(order: Order) {
+
+    val documents = order.documents ?: return
+
+    // Total printed pages across all documents
+    val totalPages =
+        documents.sumOf { doc ->
+            (doc.pageCount ?: 0) * (doc.copies ?: 1)
+        }
+
+    // Derive per-page price
+    val pricePerPage =
+        if (totalPages == 0) 0.0
+        else order.totalPrice.toDouble() / totalPages
+
+    Column {
+
+        Text(
+            text = "Bill Summary",
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        documents.forEach { doc ->
+
+            val pages = doc.pageCount ?: 0
+            val copies = doc.copies ?: 1
+
+            val subtotal =
+                pages * copies * pricePerPage
+
+            Text(
+                text = doc.fileName ?: "Document",
+                color = Color(0xFFFF9500),
+                fontSize = 13.sp
+            )
+
+            Spacer(Modifier.height(4.dp))
+
+            BillRow(
+                title = "$pages pages × ₹${"%.2f".format(pricePerPage)} × $copies copies",
+                value = "₹${"%.2f".format(subtotal)}"
+            )
+
+            Spacer(Modifier.height(8.dp))
+        }
+
+        HorizontalDivider(
+            thickness = 1.dp,
+            color = Color(0xFF555555)
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        BillRow(
+            title = "Total",
+            value = "₹${order.totalPrice}",
+            bold = true
+        )
+    }
+}
+
+

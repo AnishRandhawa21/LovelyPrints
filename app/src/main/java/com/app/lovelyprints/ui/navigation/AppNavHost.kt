@@ -20,6 +20,7 @@ import androidx.compose.animation.core.tween
 
 // ✅ Import for background
 import androidx.compose.foundation.background
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 
 import com.app.lovelyprints.di.AppContainer
@@ -99,7 +100,7 @@ fun AppNavHost(
                     appContainer.tokenManager
                 ),
                 onLoginSuccess = {
-                    navController.navigate(Routes.Main.route) {
+                    navController.navigate(Routes.Home.route) {
                         popUpTo(Routes.Login.route) { inclusive = true }
                     }
                 },
@@ -138,14 +139,6 @@ fun AppNavHost(
         // Main Flow
         // ------------------------------------------------
 
-        composable(
-            route = Routes.Main.route,
-            enterTransition = { fadeIn(animationSpec = tween(300)) }
-        ) {
-            navController.navigate(Routes.Home.route) {
-                popUpTo(Routes.Main.route) { inclusive = true }
-            }
-        }
 
         composable(
             route = Routes.Home.route,

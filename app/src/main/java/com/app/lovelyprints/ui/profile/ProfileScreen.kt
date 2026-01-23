@@ -26,6 +26,7 @@ fun ProfileScreen(
 ) {
     val viewModel: ProfileViewModel = viewModel(factory = viewModelFactory)
     val userName by tokenManager.userNameFlow.collectAsState(initial = "User")
+
     val scope = rememberCoroutineScope()
     var showLogoutDialog by remember { mutableStateOf(false) }
 

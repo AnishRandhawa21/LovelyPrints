@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import android.content.Context
 import com.app.lovelyprints.utils.PdfUtils
+import kotlinx.coroutines.flow.update
 
 /* ---------------- UI STATE ---------------- */
 
@@ -141,6 +142,12 @@ class CreateOrderViewModel(
             description = value
         )
     }
+    fun clearError() {
+        _uiState.update {
+            it.copy(error = null)
+        }
+    }
+
 
     /* ---------------- ORDER FLOW ---------------- */
 

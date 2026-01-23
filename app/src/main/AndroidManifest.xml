@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ========================= -->
+    <!-- REQUIRED PERMISSIONS -->
+    <!-- ========================= -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />  <!-- ✅ ADD THIS -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Android 13+ notification permission -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
+
+    <!-- ========================= -->
+    <!-- APPLICATION -->
+    <!-- ========================= -->
 
     <application
         android:name=".LovelyPrintsApp"
@@ -17,17 +30,38 @@
         android:usesCleartextTraffic="true"
         tools:ignore="MissingClass">
 
+        <!-- ========================= -->
+        <!-- FIREBASE MESSAGING SERVICE -->
+        <!-- ========================= -->
+
+<!--        <service-->
+<!--            android:name=".firebase.FcmService"-->
+<!--            android:exported="false"-->
+<!--            tools:ignore="MissingClass">-->
+
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGING_EVENT" />-->
+<!--            </intent-filter>-->
+
+<!--        </service>-->
+
+        <!-- ========================= -->
+        <!-- MAIN ACTIVITY -->
+        <!-- ========================= -->
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/Theme.LovelyPrints">  <!-- ✅ ADD windowSoftInputMode -->
+            android:theme="@style/Theme.LovelyPrints">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+
     </application>
 
 </manifest>

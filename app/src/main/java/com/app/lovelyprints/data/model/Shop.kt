@@ -53,3 +53,11 @@ data class ApiResponse<T>(
     val message: String,
     val data: T
 )
+
+data class Document(
+    val fileName: String?,
+    val pageCount: Int?,
+    val copies: Int?,
+    val pricePerPage: Double?
+)
+
