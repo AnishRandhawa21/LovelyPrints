@@ -74,9 +74,9 @@ class CreateOrderViewModel(
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
                             printOptions = result.data,
-                            selectedPaperType = result.data.paperTypes?.firstOrNull(),
+                            selectedPaperType = null,
                             selectedColorMode = result.data.colorModes?.firstOrNull(),
-                            selectedFinishType = result.data.finishTypes?.firstOrNull(),
+                            selectedFinishType = null,
                             currentStep = OrderStep.SELECT_OPTIONS
                         )
                     }

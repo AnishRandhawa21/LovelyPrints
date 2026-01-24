@@ -34,6 +34,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.unit.sp
 
 
 // --------------------------------------------------
@@ -244,6 +245,7 @@ fun ShopCard(
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
 
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -286,15 +288,42 @@ fun ShopCard(
                     )
                 }
 
-                Image(
-                    painter = painterResource(R.drawable.shop),
-                    contentDescription = null,
-                    modifier = Modifier.size(80.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(
+                            if (shop.isActive)
+                                Color.Transparent
+                            else
+                                Color.Black.copy(alpha = 0.35f)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    if (shop.isActive) {
+
+                        Image(
+                            painter = painterResource(R.drawable.shop),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                    } else {
+
+                        Text(
+                            text = "CLOSED",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
             }
         }
     }
 }
+
 
 // --------------------------------------------------
 // 🎨 ANIMATED GRADIENT
@@ -427,3 +456,33 @@ fun rememberShimmerBrush(): Brush {
         end = Offset(x, 600f)
     )
 }
+
+//Close Badge
+@Composable
+fun ClosedBlurBadge(modifier: Modifier) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color.Black.copy(alpha = 0.6f),
+                        Color.Black.copy(alpha = 0.35f)
+                    )
+                )
+            )
+            .border(
+                1.dp,
+                Color.White.copy(alpha = 0.3f),
+                RoundedCornerShape(10.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = "CLOSED",
+            color = Color.White,
+            style = MaterialTheme.typography.labelSmall
+        )
+    }
+}
+

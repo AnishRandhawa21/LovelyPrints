@@ -500,7 +500,8 @@
 
                         // Paper Type Dropdown
                         DropdownSection(
-                            label = "Paper Type",
+                            label = "Paper Size",
+                            placeholder = "Select paper size",
                             selected = uiState.selectedPaperType?.name ?: "",
                             items = uiState.printOptions?.paperTypes ?: emptyList(),
                             itemText = { "${it.name} - ₹${it.basePrice}" },
@@ -511,6 +512,7 @@
                         // Finish Type Dropdown
                         DropdownSection(
                             label = "Finish Type",
+                            placeholder = "Select finish type",
                             selected = uiState.selectedFinishType?.name ?: "",
                             items = uiState.printOptions?.finishTypes ?: emptyList(),
                             itemText = { "${it.name} - ₹${it.extraPrice}" },
@@ -567,6 +569,68 @@
                                 }
                             }
                         }
+                        Spacer(Modifier.height(24.dp))
+
+                        // Urgent Order Toggle
+                        Text(
+                            text = "Urgent Order",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Spacer(Modifier.height(12.dp))
+
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF696969),
+                            border = BorderStroke(
+                                width = 2.dp,
+                                color = if (uiState.isUrgent)
+                                    Color(0xFFFF9500)
+                                else
+                                    Color(0xFF838383)
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+
+                                Column {
+                                    Text(
+                                        text = "Fast Printing",
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        fontSize = 16.sp
+                                    )
+
+                                    Spacer(Modifier.height(2.dp))
+
+                                    Text(
+                                        text = "₹10 extra for urgent processing",
+                                        color = Color(0xFFFF9500),
+                                        fontSize = 12.sp
+                                    )
+                                }
+
+                                Switch(
+                                    checked = uiState.isUrgent,
+                                    onCheckedChange = onUrgentChange,
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = Color(0xFFFF9500),
+                                        uncheckedThumbColor = Color.White,
+                                        uncheckedTrackColor = Color.DarkGray
+                                    )
+                                )
+                            }
+                        }
+
 
                         //Discription
 
@@ -618,7 +682,9 @@
 
                         Button(
                             onClick = onSubmit,
-                            enabled = uiState.selectedFile != null,
+                            enabled =
+                                uiState.selectedFile != null &&
+                            uiState.selectedPaperType != null && uiState.selectedFinishType != null,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFFFF9500),
                                 disabledContainerColor = Color(0xFFE0E0E0)
@@ -649,6 +715,7 @@
     @Composable
     private fun <T> DropdownSection(
         label: String,
+        placeholder: String,
         selected: String,
         items: List<T>,
         itemText: (T) -> String,
@@ -693,7 +760,7 @@
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = if (selected.isEmpty()) "Select $label" else selected,
+                            text = if (selected.isEmpty()) placeholder else selected,
                             color = if (isSelected) Color(0xFFFFFFFF) else Color.White,
                             style = MaterialTheme.typography.bodyLarge
                         )
