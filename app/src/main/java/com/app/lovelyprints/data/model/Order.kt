@@ -1,6 +1,10 @@
 package com.app.lovelyprints.data.model
 
 import com.google.gson.annotations.SerializedName
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /* ================= CREATE ORDER ================= */
 
@@ -122,3 +126,24 @@ enum class PrintOrientation(
 fun String.lastSix(): String {
     return if (length <= 6) this else takeLast(6)
 }
+fun Order.isExpired(): Boolean {
+
+    // Completed and cancelled never expire
+    if (status.equals("completed", true)) return false
+    if (status.equals("cancelled", true)) return false
+
+    val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+
+    val orderLocalDate =
+        OffsetDateTime
+            .parse(createdAt, formatter)
+            .atZoneSameInstant(ZoneId.systemDefault())
+            .toLocalDate()
+
+    val todayLocalDate =
+        LocalDate.now(ZoneId.systemDefault())
+
+    return todayLocalDate.isAfter(orderLocalDate)
+}
+
+

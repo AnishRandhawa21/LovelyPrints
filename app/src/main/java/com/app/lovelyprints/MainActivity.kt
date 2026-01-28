@@ -26,9 +26,7 @@ import com.razorpay.Checkout
 import com.razorpay.PaymentData
 import com.razorpay.PaymentResultWithDataListener
 
-class MainActivity :
-    ComponentActivity(),
-    PaymentResultWithDataListener {
+class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,8 +98,31 @@ class MainActivity :
         description: String?,
         paymentData: PaymentData?
     ) {
+        // 🔹 user cancelled payment (pressed back / closed)
+        if (code == 0) {
+
+            RazorpayHolder.result =
+                RazorpayResult(
+                    orderId = paymentData?.orderId ?: "",
+                    paymentId = "",
+                    signature = ""
+                )
+
+            Log.d("RAZORPAY", "PAYMENT CANCELLED BY USER")
+            return
+        }
+
+        // 🔹 real payment failure
+        RazorpayHolder.result =
+            RazorpayResult(
+                orderId = paymentData?.orderId ?: "",
+                paymentId = "",
+                signature = ""
+            )
+
         Log.e("RAZORPAY", "PAYMENT FAILED → $description")
     }
+
 }
 
 /* -------------------------------------------------- */

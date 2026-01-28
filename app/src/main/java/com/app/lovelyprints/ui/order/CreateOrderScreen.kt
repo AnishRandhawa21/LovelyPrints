@@ -209,13 +209,25 @@
         LaunchedEffect(Unit) {
             while (true) {
                 RazorpayHolder.result?.let {
+
+                    RazorpayHolder.result = null
+
+                    // ❌ cancelled or failed
+                    if (it.paymentId.isBlank() || it.signature.isBlank()) {
+
+                        viewModel.clearError()
+                        viewModel.setPaymentCancelled()
+                        return@let
+                    }
+
+                    // ✅ success
                     viewModel.verifyPayment(
                         razorpayOrderId = it.orderId,
                         razorpayPaymentId = it.paymentId,
                         razorpaySignature = it.signature
                     )
-                    RazorpayHolder.result = null
                 }
+
                 kotlinx.coroutines.delay(500)
             }
         }
@@ -300,7 +312,7 @@
                         Spacer(Modifier.height(12.dp))
 
                         Text(
-                            text = "Accepted formats: PDF, DOCX, JPG, PNG. Max 100MB per file.",
+                            text = "Accepted format: PDF Max 500MB per file.",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFFCACACA),
                             textAlign = TextAlign.Center,
@@ -864,7 +876,7 @@
             val checkout = Checkout()
 
             // ✅ SET YOUR RAZORPAY KEY ID HERE
-            checkout.setKeyID("rzp_test_RtmyYs3tfIn7km")  // REPLACE WITH YOUR ACTUAL KEY
+            checkout.setKeyID("Api here")
 
             val options = JSONObject()
             options.put("name", "Lovely Prints")

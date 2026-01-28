@@ -117,16 +117,21 @@ fun HomeScreen(
             }
 
             filteredShops.isEmpty() -> {
-                Box(
+
+                LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        "No matching shops",
-                        color = Color.Gray
-                    )
+                    item {
+                        Text(
+                            text = "No shops found\nrefresh",
+                            color = Color.Gray
+                        )
+                    }
                 }
             }
+
 
             else -> {
 

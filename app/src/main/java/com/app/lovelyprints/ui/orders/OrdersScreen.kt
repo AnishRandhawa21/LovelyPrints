@@ -48,8 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import com.app.lovelyprints.data.model.lastSix
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-
-
+import com.app.lovelyprints.data.model.isExpired
 
 
 /* -------------------------------------------------------------------------- */
@@ -239,6 +238,7 @@ fun OrdersScreen(
     }
 }
 
+
 /* -------------------------------------------------------------------------- */
 /*                              OTP                                           */
 /* -------------------------------------------------------------------------- */
@@ -336,8 +336,13 @@ fun ExpandableOrderCard(
         targetValue = if (expanded) 180f else 0f,
         label = "arrow_rotation"
     )
+     val alpha by animateFloatAsState(
+         targetValue = if (order.isExpired()) 0.55f else 1f,
+         label = "expired_alpha"
+     )
 
-    Card(
+
+     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
@@ -390,7 +395,10 @@ fun ExpandableOrderCard(
 
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OrderStatusChip(order.status)
+                    OrderStatusChip(
+                        if (order.isExpired()) "expired" else order.status
+                    )
+
 
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
@@ -505,9 +513,10 @@ fun ExpandableOrderCard(
                     AnimatedVisibility(
                         visible = expanded &&
                                 order.status == "ready" &&
+                                !order.isExpired() &&
                                 !order.otpVerified &&
                                 !order.deliveryOtp.isNullOrBlank(),
-                        enter = fadeIn(),
+                                enter = fadeIn(),
                         exit = fadeOut()
                     )
                     {
@@ -565,6 +574,7 @@ fun ExpandableOrderCard(
 fun OrderStatusChip(status: String) {
 
     val color = when (status.lowercase()) {
+        "expired" -> Color(0xFFB3261E)
 
         "pending" -> Color(0xFF9C5A10)
 

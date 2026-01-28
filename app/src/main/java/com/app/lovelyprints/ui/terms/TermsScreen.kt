@@ -1,6 +1,8 @@
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,28 +63,50 @@ fun TermsScreen(
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.White
                     )
+                    @Composable
+                    fun PolicyItem(text: String) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+
+                            Text(
+                                text = "•",
+                                color = Color(0xFFFFFFFF),
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+
+                            Text(
+                                text = text,
+                                color = Color(0xFFCCCCCC),
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp
+                            )
+                        }
+                    }
 
                     Spacer(Modifier.height(12.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .heightIn(max = 220.dp)
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        Text(
-                            text = """
-• Orders once placed cannot be cancelled
-• Pickup OTP must be shown at shop
-• Refunds depend on shop policy 
-• Files are deleted after printing
-• Prices depend on page count & copies
-""".trimIndent(),
-                            color = Color(0xFFCCCCCC),
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        )
-                    }
+                    val policies = listOf(
+                        "Orders once paid are final and cannot be cancelled or refunded",
+                        "All uploaded files are automatically scanned for inappropriate or prohibited content; violations may result in immediate account suspension or permanent ban",
+                        "Customers must carry the pickup OTP to collect their prints",
+                        "Orders must be collected on the same day they are printed; uncollected orders will be discarded after the same day",
+                        "Neither the print shop nor Lovely Prints will be responsible for any loss, damage, or claims related to uncollected or discarded orders",
+                        "Print shops are not responsible for errors caused by incorrect or low-quality files uploaded by users",
+                        "Misuse of the platform, including policy violations or abusive behavior, may lead to account suspension or permanent termination"
+                    )
 
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 220.dp)
+                    ) {
+                        items(policies) {
+                            PolicyItem(text = it)
+                        }
+                    }
                     Spacer(Modifier.height(16.dp))
 
                     Row(

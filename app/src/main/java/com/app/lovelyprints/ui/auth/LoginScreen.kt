@@ -66,9 +66,9 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .verticalScroll(rememberScrollState())
+                .systemBarsPadding()   // 👈 not windowInsetsPadding
                 .imePadding()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
+import com.app.lovelyprints.data.model.isExpired
 
 data class OrdersUiState(
     val isLoading: Boolean = false,
@@ -46,19 +47,24 @@ class OrdersViewModel(
 
                     val allOrders = result.data.data
 
-                    val current =
-                        allOrders.filter {
-                            it.status.lowercase() != "completed"
+                    val currentOrders =
+                        allOrders.filter { order ->
+                            !order.isExpired() &&
+                                    !order.status.equals("completed", true) &&
+                                    !order.status.equals("cancelled", true)
                         }
 
-                    val history =
-                        allOrders.filter {
-                            it.status.lowercase() == "completed"
+                    val historyOrders =
+                        allOrders.filter { order ->
+                            order.isExpired() ||
+                                    order.status.equals("completed", true) ||
+                                    order.status.equals("cancelled", true)
                         }
+
 
                     _uiState.value = OrdersUiState(
-                        currentOrders = current,
-                        orderHistory = history,
+                        currentOrders = currentOrders,
+                        orderHistory = historyOrders,
                         isLoading = false,
                         error = null
                     )

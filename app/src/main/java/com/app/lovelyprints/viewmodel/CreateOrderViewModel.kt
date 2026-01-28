@@ -366,4 +366,13 @@ class CreateOrderViewModel(
             }
         }
     }
+    fun setPaymentCancelled() {
+        _uiState.update {
+            it.copy(
+                currentStep = OrderStep.SELECT_OPTIONS,
+                error = "Payment cancelled"
+            )
+        }
+    }
+
 }
