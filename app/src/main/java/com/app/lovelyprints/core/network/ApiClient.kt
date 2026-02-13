@@ -16,7 +16,7 @@ class ApiClient(
 
     companion object {
         private const val BASE_URL =
-            "PUT_API_HERE"
+            "URL HERE"
     }
 
     private val authInterceptor = Interceptor { chain ->

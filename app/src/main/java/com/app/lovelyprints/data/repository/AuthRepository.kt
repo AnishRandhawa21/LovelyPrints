@@ -5,6 +5,7 @@ import com.app.lovelyprints.core.auth.TokenManager
 import com.app.lovelyprints.data.api.AuthApi
 import com.app.lovelyprints.data.model.LoginRequest
 import com.app.lovelyprints.data.model.LoginResponse
+import com.app.lovelyprints.data.model.Organisation
 import com.app.lovelyprints.data.model.SignupRequest
 
 sealed class Result<out T> {
@@ -72,11 +73,17 @@ class AuthRepository(
     suspend fun signup(
         name: String,
         email: String,
-        password: String
+        password: String,
+        organisationId: String
     ): Result<Unit> {
         return try {
             val response = authApi.signup(
-                SignupRequest(name, email, password)
+                SignupRequest(
+                    name = name,
+                    email = email,
+                    password = password,
+                    organisation_id = organisationId
+                )
             )
 
             if (!response.isSuccessful) {
@@ -106,6 +113,42 @@ class AuthRepository(
             Result.Error(message)
         }
     }
+
+    /* ---------------- Organisation---------------- */
+    suspend fun getOrganisations(): Result<List<Organisation>> {
+        return try {
+            val response = authApi.getOrganisations()
+
+            if (!response.isSuccessful) {
+                return when (response.code()) {
+                    500 -> Result.Error("Server error. Please try again later.")
+                    else -> Result.Error("Failed to load organisations.")
+                }
+            }
+
+            val body = response.body()
+                ?: return Result.Error("Empty server response")
+
+            Result.Success(body.data)
+
+        } catch (e: Exception) {
+
+            val message = when {
+                e.message?.contains("Unable to resolve host", true) == true ->
+                    "Cannot connect to server. Check your internet connection."
+
+                e.message?.contains("timeout", true) == true ->
+                    "Server is taking too long to respond."
+
+                else ->
+                    "Something went wrong. Please try again."
+            }
+
+            Result.Error(message)
+        }
+    }
+
+
 
     /* ---------------- LOGOUT ---------------- */
 

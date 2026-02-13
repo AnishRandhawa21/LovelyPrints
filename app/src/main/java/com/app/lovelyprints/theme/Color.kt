@@ -1,62 +1,66 @@
 package com.app.lovelyprints.theme
-
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
-// Color.kt
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+/* ---------- Base ---------- */
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val White = Color(0xFFFFFFFF)
+val Black = Color(0xFF000000)
 
-val Primary = Color(0xFF6200EE)
-val Secondary = Color(0xFF03DAC6)
-val Error = Color(0xFFB00020)
+/* ---------- Backgrounds & Surfaces ---------- */
 
-private val LightColorScheme = lightColorScheme(
-    primary = Primary,
-    secondary = Secondary,
-    error = Error,
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.Black,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-)
+val BackgroundPrimary = Color(0xFFFFFFFF)
+val BackgroundSecondary = Color(0xFFF7F8FA)
+val BackgroundTertiary = Color(0xFFF2F3F5)
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+val SurfaceCard = Color(0xFFFFFFFF)
+val SurfaceMuted = Color(0xFFF6F7F9)
+val DividerLight = Color(0xFFE9EBEF)
 
-//Background
-val backgroundLight = Color(0xFFFAFAFA)
-val SurfaceLight = Color(0xFFFFFFFF)
+/* ---------- Brand / Primary ---------- */
 
-//Brand
-val LpuOrange = Color(0xFFF58220)
-val LpuBlue = Color(0xFF7AA6B3)
+val BrandPurple = Color(0xFF6C63FF)
+val BrandPurpleLight = Color(0xFF9B8CFF)
 
-//Text
-val TextPrimary = Color(0xFF212121)
-val TextSecondary = Color(0xFF616161)
+val AccentPink = Color(0xFFFF8ED4)
+val AccentPinkLight = Color(0xFFFFB6E6)
 
-//Accent / states
-val AccentBlue = Color(0xFF1565C0)
-val SuccessGreen = Color(0xFF2E7D32)
-val ErrorRed = Color(0xFFC62828)
+val AccentYellow = Color(0xFFFFC83D)
+val AccentOrange = Color(0xFFFFB703)
 
-//Other
-val DividerGray = Color(0xFFE0E0E0)
+val AccentMint = Color(0xFF4CD4B0)
+val AccentMintLight = Color(0xFFB8F2E6)
+
+/* ---------- Pastel Supporting Colors ---------- */
+
+val PastelLavender = Color(0xFFCDB4FF)
+val PastelBlue = Color(0xFFA0C4FF)
+val PastelPeach = Color(0xFFFFD6A5)
+val PastelCoral = Color(0xFFFF9F9F)
+
+/* ---------- Text ---------- */
+
+val TextPrimary = Color(0xFF1F2937)
+val TextSecondary = Color(0xFF4B5563)
+val TextTertiary = Color(0xFF6B7280)
+
+val TextHint = Color(0xFF9CA3AF)
+val TextDisabled = Color(0xFFD1D5DB)
+val TextOnColor = Color(0xFFFFFFFF)
+
+/* ---------- Status ---------- */
+
+val SuccessGreen = Color(0xFF22C55E)
+val WarningOrange = Color(0xFFF97316)
+val ErrorRed = Color(0xFFEF4444)
+val InfoBlue = Color(0xFF3B82F6)
+
+/* ---------- Gradients ---------- */
+
+val GradientPurpleStart = Color(0xFF6C63FF)
+val GradientPurpleEnd = Color(0xFF9B8CFF)
+
+val GradientPinkStart = Color(0xFFFF8ED4)
+val GradientPinkEnd = Color(0xFFFFB6E6)
+
+val GradientSunsetStart = Color(0xFFFFC83D)
+val GradientSunsetEnd = Color(0xFFFF8ED4)

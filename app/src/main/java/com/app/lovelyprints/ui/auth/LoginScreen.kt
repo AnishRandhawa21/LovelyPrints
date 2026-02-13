@@ -26,6 +26,11 @@ import com.app.lovelyprints.viewmodel.AuthViewModelFactory
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import com.app.lovelyprints.theme.TextSecondary
+
 @Composable
 fun LoginScreen(
     viewModelFactory: AuthViewModelFactory,
@@ -38,6 +43,8 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -200,10 +207,7 @@ fun LoginScreen(
                 )
             }
         }
-
-
-
-        Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
 
                 Button(
@@ -252,9 +256,31 @@ fun LoginScreen(
                         )
                     }
                 }
+                TextButton(
+                    onClick = {
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://www.lovelyprints.co.in/forgot-password")
+                        )
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(top = 1.dp),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = TextSecondary
+                    )
+                ) {
+                    Text(
+                        text = "Forgot password?",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
 
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Divider(
+                    color = Color(0xFF424048),
+                    thickness = 1.dp
+                )
 
         TextButton(
             onClick = onNavigateToSignup,

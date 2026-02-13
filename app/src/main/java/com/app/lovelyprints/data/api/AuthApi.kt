@@ -11,4 +11,8 @@ interface AuthApi {
 
     @POST("auth/register")
     suspend fun signup(@Body request: SignupRequest): Response<Unit>
+
+    @GET("auth/organisations")
+    suspend fun getOrganisations(): Response<OrganisationResponse>
+
 }

@@ -34,6 +34,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 
 
@@ -50,11 +51,15 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
 
+    val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    val isShopOpen = currentHour in 9..16
+
+
 
     var searchQuery by remember { mutableStateOf("") }
 
     // ✅ SEARCH FILTER (FIX)
-    val filteredShops = remember(searchQuery, uiState.shops) {
+    val filteredShops = remember(searchQuery, uiState.shops, isShopOpen) {
 
         val result =
             if (searchQuery.isBlank()) {
@@ -66,9 +71,13 @@ fun HomeScreen(
                 }
             }
 
-        // ✅ active shops first, closed last
-        result.sortedBy { !it.isActive }
+        result.map { shop ->
+            shop.copy(
+                isActive = shop.isActive && isShopOpen
+            )
+        }.sortedBy { !it.isActive }
     }
+
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
         onRefresh = { viewModel.loadShops() },
@@ -125,7 +134,7 @@ fun HomeScreen(
                 ) {
                     item {
                         Text(
-                            text = "No shops found\nrefresh",
+                            text = "Refresh",
                             color = Color.Gray
                         )
                     }
@@ -315,14 +324,35 @@ fun ShopCard(
                         )
 
                     } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(6.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
 
-                        Text(
-                            text = "CLOSED",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium,
-                            letterSpacing = 1.sp
-                        )
+                            Text(
+                                text = "CLOSED",
+                                modifier = Modifier.fillMaxWidth(),
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Text(
+                                text = "Opens at 9:00 AM",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 1.dp),
+                                color = Color.LightGray,
+                                fontSize = 11.sp,
+                                lineHeight = 13.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
+
                 }
             }
         }
@@ -460,34 +490,5 @@ fun rememberShimmerBrush(): Brush {
         start = Offset(x - 300f, 0f),
         end = Offset(x, 600f)
     )
-}
-
-//Close Badge
-@Composable
-fun ClosedBlurBadge(modifier: Modifier) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.Black.copy(alpha = 0.6f),
-                        Color.Black.copy(alpha = 0.35f)
-                    )
-                )
-            )
-            .border(
-                1.dp,
-                Color.White.copy(alpha = 0.3f),
-                RoundedCornerShape(10.dp)
-            )
-            .padding(horizontal = 10.dp, vertical = 3.dp)
-    ) {
-        Text(
-            text = "CLOSED",
-            color = Color.White,
-            style = MaterialTheme.typography.labelSmall
-        )
-    }
 }
 

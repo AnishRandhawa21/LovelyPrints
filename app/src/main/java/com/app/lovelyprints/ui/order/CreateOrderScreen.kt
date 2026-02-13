@@ -22,11 +22,13 @@
     import androidx.compose.material.icons.filled.ArrowDropDown
     import androidx.compose.material.icons.filled.Check
     import androidx.compose.material.icons.filled.Warning
+    import androidx.compose.material.icons.outlined.Info
     import androidx.compose.material3.*
     import androidx.compose.runtime.*
     import androidx.compose.ui.Alignment
     import androidx.compose.ui.Modifier
     import androidx.compose.ui.draw.clip
+    import androidx.compose.ui.graphics.Brush
     import androidx.compose.ui.graphics.Color
     import androidx.compose.ui.platform.LocalContext
     import androidx.compose.ui.text.font.FontWeight
@@ -134,8 +136,12 @@
                                     Log.e("RAZORPAY", "Payment Error: $errorMsg")
                                 }
                             )
+
                         }
+
+
                     }
+
                 )
 
             OrderStep.UPLOADING ->
@@ -148,7 +154,7 @@
                 LoadingScreen("Processing payment...")
 
             OrderStep.SUCCESS ->
-                SuccessScreen(onOrderSuccess)
+                LoadingScreen("Redirecting…")
         }
 
         uiState.error?.let { errorMessage ->
@@ -251,6 +257,9 @@
         onSubmit: () -> Unit
     )
      {
+
+         var showInstructions by remember { mutableStateOf(false) }
+
         Surface(
             modifier = Modifier.fillMaxSize()
                 .imePadding(),
@@ -262,13 +271,25 @@
                     .verticalScroll(rememberScrollState())
             ) {
                 // Header
-                Text(
-                    text = "Create Print Order",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF878787),
-                    modifier = Modifier.padding(16.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Create Print Order",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF878787)
+                    )
+
+                    InfoIconButton {
+                        showInstructions = true
+                    }
+                }
+
 
                 // File Upload Card
                 Surface(
@@ -481,26 +502,27 @@
                                         Spacer(modifier = Modifier.height(12.dp))
 
                                         Row(
-                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                            horizontalArrangement = Arrangement.Center,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            if (colorMode.name.contains("Color", ignoreCase = true)) {
-                                                ColorDot(Color(0xFFEF5350))
-                                                ColorDot(Color(0xFF42A5F5))
-                                                ColorDot(Color(0xFF66BB6A))
-                                            } else {
-                                                ColorDot(Color.Black)
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(18.dp)
-                                                        .clip(RoundedCornerShape(9.dp))
-                                                        .background(Color.White)
-                                                        .border(
-                                                            width = 1.5.dp,
-                                                            color = Color.Black,
-                                                            shape = RoundedCornerShape(9.dp)
-                                                        )
-                                                )
+
+                                            when {
+                                                // 🎨 COLOR PRINT
+                                                colorMode.name.contains("color", ignoreCase = true) -> {
+                                                    GradientDot()
+                                                }
+
+                                                // 📄 CV PRINT
+                                                colorMode.name.contains("cv", ignoreCase = true) -> {
+                                                    SolidDot(Color(0xFFF3ECDC)) // off-white / bond color
+                                                }
+
+                                                // ⚫ BLACK & WHITE
+                                                else -> {
+                                                    SolidDot(Color.Black)
+                                                    Spacer(Modifier.width(4.dp))
+                                                    SolidDot(Color.White)
+                                                }
                                             }
                                         }
                                     }
@@ -512,7 +534,7 @@
 
                         // Paper Type Dropdown
                         DropdownSection(
-                            label = "Paper Size",
+                            label = "Paper Type",
                             placeholder = "Select paper size",
                             selected = uiState.selectedPaperType?.name ?: "",
                             items = uiState.printOptions?.paperTypes ?: emptyList(),
@@ -716,6 +738,59 @@
                     }
                 }
             }
+            if (showInstructions) {
+                AlertDialog(
+                    onDismissRequest = { showInstructions = false },
+                    containerColor = Color(0xFF181818),
+                    titleContentColor = Color.White,
+                    textContentColor = Color(0xFFCCCCCC),
+
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = Color(0xFFFF9500)
+                        )
+                    },
+
+                    title = {
+                        Text(
+                            text = "Printing Instructions",
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                            InstructionItem(
+                                "For CV printing, select BOND in Paper Type and CV in Finish Type."
+                            )
+
+                            InstructionItem(
+                                "Upload PDF files only."
+                            )
+
+                            InstructionItem(
+                                "Urgent printing adds an extra ₹10 to the total price."
+                            )
+                        }
+
+                    },
+
+                    confirmButton = {
+                        TextButton(
+                            onClick = { showInstructions = false },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = Color(0xFFFF9500)
+                            )
+                        ) {
+                            Text("Got it")
+                        }
+                    }
+                )
+            }
+
         }
     }
 
@@ -846,21 +921,6 @@
             }
         }
     }
-
-    @Composable
-    private fun SuccessScreen(onClick: () -> Unit) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Order placed successfully!", style = MaterialTheme.typography.headlineMedium)
-                Spacer(Modifier.height(16.dp))
-                Button(onClick = onClick) { Text("View Orders") }
-            }
-        }
-    }
-
     /* -------------------------------------------------- */
     /* ---------------- RAZORPAY ------------------------- */
     /* -------------------------------------------------- */
@@ -876,7 +936,7 @@
             val checkout = Checkout()
 
             // ✅ SET YOUR RAZORPAY KEY ID HERE
-            checkout.setKeyID("Api here")
+            checkout.setKeyID("API HERE")
 
             val options = JSONObject()
             options.put("name", "Lovely Prints")
@@ -964,4 +1024,80 @@
                 }
             }
         }
+    }
+    @Composable
+    fun InfoIconButton(
+        onClick: () -> Unit
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.size(28.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = "Instructions",
+                tint = Color(0xFFFF9500),
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+
+    @Composable
+    fun InstructionItem(text: String) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                text = "•",
+                color = Color.White,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+
+
+    //color
+
+    @Composable
+    fun SolidDot(color: Color) {
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .clip(RoundedCornerShape(9.dp))
+                .background(color)
+                .border(
+                    width = 1.dp,
+                    color = Color.Black,
+                    shape = RoundedCornerShape(9.dp)
+                )
+        )
+    }
+    @Composable
+    fun GradientDot() {
+        Box(
+            modifier = Modifier
+                .size(18.dp)
+                .clip(RoundedCornerShape(9.dp))
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFE53935), // red
+                            Color(0xFFFB8C00), // orange
+                            Color(0xFFFDD835), // yellow
+                            Color(0xFF43A047), // green
+                            Color(0xFF1E88E5), // blue
+                            Color(0xFF8E24AA)  // purple
+                        )
+                    )
+                )
+        )
     }

@@ -27,6 +27,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import com.app.lovelyprints.utils.isValidPassword
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import com.app.lovelyprints.data.model.Organisation
 
 
 @Composable
@@ -61,14 +66,6 @@ fun SignupScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
-        Image(
-            painter = painterResource(R.drawable.background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.matchParentSize()
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -152,8 +149,17 @@ fun SignupScreen(
                             unfocusedTextColor = Color(0xFFFBFBFB)
                         )
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OrganisationDropdown(
+                        organisations = uiState.organisations,
+                        selectedOrganisation = uiState.selectedOrganisation,
+                        onSelect = { viewModel.selectOrganisation(it) },
+                        isLoading = uiState.isLoadingOrganisations
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
+
 
                     OutlinedTextField(
                         value = password,
@@ -239,7 +245,12 @@ fun SignupScreen(
 
                     Button(
                         onClick = {
-                            viewModel.signup(name, email, password)
+                            viewModel.signup(
+                                name,
+                                email,
+                                password,
+                                uiState.selectedOrganisation!!.id
+                            )
                         },
 
                         modifier = Modifier
@@ -265,7 +276,8 @@ fun SignupScreen(
                             !uiState.isLoading &&
                                     name.isNotBlank() &&
                                     email.isNotBlank() &&
-                                    isPasswordValid
+                                    isPasswordValid &&
+                                    uiState.selectedOrganisation != null
                     ){
 
                         if (uiState.isLoading) {
@@ -294,6 +306,73 @@ fun SignupScreen(
                         Text("Already have an account? Login")
                     }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OrganisationDropdown(
+    organisations: List<Organisation>,
+    selectedOrganisation: Organisation?,
+    onSelect: (Organisation) -> Unit,
+    isLoading: Boolean
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = {
+            if (!isLoading && organisations.isNotEmpty()) {
+                expanded = !expanded
+            }
+        }
+    ) {
+
+        OutlinedTextField(
+            value = selectedOrganisation?.name
+                ?: if (!isLoading && organisations.isEmpty()) "No organisations available"
+                else "",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Select Organisation", color = Color(0xFFFBFBFB)) },
+            trailingIcon = {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = Color(0xFFFBFBFB)
+                    )
+                } else {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                }
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFFF56E0F),
+                unfocusedBorderColor = Color(0xFF424048),
+                focusedLabelColor = Color(0xFFF56E0F),
+                cursorColor = Color(0xFF424048),
+                focusedTextColor = Color(0xFFFBFBFB),
+                unfocusedTextColor = Color(0xFFFBFBFB)
+            )
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            organisations.forEach { organisation ->
+                DropdownMenuItem(
+                    text = { Text(organisation.name) },
+                    onClick = {
+                        onSelect(organisation)
+                        expanded = false
+                    }
+                )
             }
         }
     }

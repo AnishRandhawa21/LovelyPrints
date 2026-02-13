@@ -11,8 +11,10 @@ data class SignupRequest(
     val name: String,
     val email: String,
     val password: String,
-    val role: String = "student"
+    val role: String = "student",
+    val organisation_id: String
 )
+
 
 // ---------- RESPONSES ----------
 
@@ -39,4 +41,13 @@ data class User(
 data class UserMetadata(
     val role: String,
     val name: String? = null
+)
+
+data class OrganisationResponse(
+    val data: List<Organisation>
+)
+
+data class Organisation(
+    val id: String,
+    val name: String
 )

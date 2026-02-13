@@ -11,46 +11,103 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.app.lovelyprints.data.model.Organisation
+
 data class AuthUiState(
     val isLoading: Boolean = false,
+    val isLoadingOrganisations: Boolean = false,
+    val organisations: List<Organisation> = emptyList(),
+    val selectedOrganisation: Organisation? = null,
     val error: String? = null,
     val isSuccess: Boolean = false
 )
 
+
 class AuthViewModel(
     private val authRepository: AuthRepository,
-    private val tokenManager: TokenManager   // can stay for logout later
+    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    fun login(email: String, password: String) {
-        Log.d("AUTH", "VM LOGIN CALLED")
+    init {
+        loadOrganisations()
+    }
+
+    /* ---------------- LOAD ORGANISATIONS ---------------- */
+
+    fun loadOrganisations() {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isLoadingOrganisations = true,
+                error = null
+            )
+
+            when (val result = authRepository.getOrganisations()) {
+
+                is Result.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        organisations = result.data,
+                        isLoadingOrganisations = false
+                    )
+                }
+
+                is Result.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingOrganisations = false,
+                        error = result.message
+                    )
+                }
+
+                else -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoadingOrganisations = false,
+                        error = "Unexpected error"
+                    )
+                }
+            }
+        }
+    }
+
+    fun selectOrganisation(organisation: Organisation) {
+        _uiState.value = _uiState.value.copy(
+            selectedOrganisation = organisation
+        )
+    }
+
+    /* ---------------- LOGIN ---------------- */
+
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+
             if (email.isBlank() || password.isBlank()) {
                 _uiState.value = AuthUiState(
                     error = "Email and password cannot be empty"
                 )
                 return@launch
             }
-            _uiState.value = AuthUiState(isLoading = true)
+
+            _uiState.value = _uiState.value.copy(isLoading = true)
 
             when (val result = authRepository.login(email, password)) {
 
                 is Result.Success -> {
-                    // ✅ Repository already saved token
-                    _uiState.value = AuthUiState(isSuccess = true)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isSuccess = true
+                    )
                 }
 
                 is Result.Error -> {
-                    _uiState.value = AuthUiState(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = result.message ?: "Login failed"
+                        error = result.message
                     )
                 }
+
                 else -> {
-                    _uiState.value = AuthUiState(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = "Unexpected error"
                     )
@@ -59,21 +116,62 @@ class AuthViewModel(
         }
     }
 
-    fun signup(name: String, email: String, password: String) {
-        viewModelScope.launch {
-            _uiState.value = AuthUiState(isLoading = true)
+    /* ---------------- SIGNUP ---------------- */
 
-            when (val result = authRepository.signup(name, email, password)) {
+    fun signup(
+        name: String,
+        email: String,
+        password: String,
+        organisationId: String
+    ) {
+        viewModelScope.launch {
+
+            if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                _uiState.value = _uiState.value.copy(
+                    error = "All fields are required"
+                )
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(
+                isLoading = true,
+                error = null
+            )
+
+            when (
+                val result = authRepository.signup(
+                    name,
+                    email,
+                    password,
+                    organisationId
+                )
+            ) {
+
                 is Result.Success -> {
-                    _uiState.value = AuthUiState(isSuccess = true)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isSuccess = true
+                    )
                 }
+
                 is Result.Error -> {
-                    _uiState.value = AuthUiState(error = result.message)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
                 }
-                else -> Unit
+
+                else -> {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Unexpected error"
+                    )
+                }
             }
         }
     }
+
+    /* ---------------- LOGOUT ---------------- */
 
     fun logout() {
         viewModelScope.launch {
@@ -85,4 +183,3 @@ class AuthViewModel(
         _uiState.value = _uiState.value.copy(error = null)
     }
 }
-
