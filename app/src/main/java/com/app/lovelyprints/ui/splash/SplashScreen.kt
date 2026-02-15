@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.lovelyprints.R
 import com.app.lovelyprints.viewmodel.SplashViewModelFactory
+import com.app.lovelyprints.theme.Cream // ADDED: Import theme colors
+import com.app.lovelyprints.theme.GoldenYellow // ADDED: Import theme colors
+import com.app.lovelyprints.theme.LimeGreen // ADDED: Import theme colors
 
 @Composable
 fun SplashScreen(
@@ -62,26 +65,26 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF151419)), // ✅ Changed to match your app's background
+            .background(Cream), // CHANGED: from Color(0xFF151419) to Cream - matches app background
         contentAlignment = Alignment.Center
     ) {
         // Logo
         Image(
-            painter = painterResource(id = R.drawable.lovely_prints),
-            contentDescription = "Lovely Prints Logo",
+            painter = painterResource(id = R.drawable.kaagazlogo), // CHANGED: from lovely_prints to kaagazlogo (assuming you're using this logo)
+            contentDescription = "Kaagaz Logo",
             modifier = Modifier
-                .size(80.dp)
+                .size(100.dp) // CHANGED: from 80.dp to 100.dp - slightly larger for better visibility on light background
                 .alpha(alphaAnim.value)
         )
 
         // Loading ring around logo (much closer)
         Canvas(
             modifier = Modifier
-                .size(82.dp)
+                .size(120.dp) // CHANGED: from 82.dp to 120.dp - adjusted to match new logo size
                 .alpha(alphaAnim.value)
         ) {
             drawArc(
-                color = Color(0xFFFF8C00), // Orange color to match your logo
+                color = GoldenYellow, // CHANGED: from Color(0xFFFF8C00) to GoldenYellow - matches your theme
                 startAngle = rotation,
                 sweepAngle = 270f,
                 useCenter = false,

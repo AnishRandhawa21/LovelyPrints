@@ -1,6 +1,6 @@
 package com.app.lovelyprints
 
-import TermsScreen
+import com.app.lovelyprints.ui.terms.TermsScreen
 import android.app.Activity
 import android.os.Bundle
 import android.util.Log
@@ -13,8 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.compose.rememberNavController
 import com.app.lovelyprints.data.model.RazorpayHolder
 import com.app.lovelyprints.data.model.RazorpayResult
@@ -22,6 +20,7 @@ import com.app.lovelyprints.theme.LovelyPrintsTheme
 import com.app.lovelyprints.ui.main.MainScreen
 import com.app.lovelyprints.ui.navigation.AppNavHost
 import com.app.lovelyprints.ui.navigation.Routes
+import com.app.lovelyprints.theme.Cream
 import com.razorpay.Checkout
 import com.razorpay.PaymentData
 import com.razorpay.PaymentResultWithDataListener
@@ -133,19 +132,21 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 fun FixSystemBars(enabled: Boolean) {
 
     val view = LocalView.current
-    val backgroundColor = Color(0xFF151419)
+    val backgroundColor = Cream // Changed to Cream background
 
     SideEffect {
         if (!enabled) return@SideEffect
 
         val window = (view.context as Activity).window
 
+        // Set system bars to Cream color
         window.statusBarColor = backgroundColor.toArgb()
         window.navigationBarColor = backgroundColor.toArgb()
 
         WindowCompat.getInsetsController(window, view).apply {
-            isAppearanceLightStatusBars = false
-            isAppearanceLightNavigationBars = false
+            // Light icons for light background
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
         }
     }
 }

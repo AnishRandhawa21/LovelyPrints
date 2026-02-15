@@ -3,6 +3,7 @@ package com.app.lovelyprints.ui.home
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,8 +36,32 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.app.lovelyprints.theme.AlmostBlack
+import com.app.lovelyprints.theme.Bebasneue
+import com.app.lovelyprints.theme.CoralRed
+import com.app.lovelyprints.theme.Cream
+import com.app.lovelyprints.theme.DarkGreen
+import com.app.lovelyprints.theme.DeepAmber
+import com.app.lovelyprints.theme.GoldenYellow
+import com.app.lovelyprints.theme.GradientPinkEnd
+import com.app.lovelyprints.theme.GradientPinkStart
+import com.app.lovelyprints.theme.GradientPurpleEnd
+import com.app.lovelyprints.theme.GradientPurpleStart
+import com.app.lovelyprints.theme.LimeGreen
+import com.app.lovelyprints.theme.MediumGray
+import com.app.lovelyprints.theme.Montserrat
+import com.app.lovelyprints.theme.OffWhite
+import com.app.lovelyprints.theme.PastelBlue
+import com.app.lovelyprints.theme.PastelCoral
+import com.app.lovelyprints.theme.PastelLavender
+import com.app.lovelyprints.theme.SoftPink
+import com.app.lovelyprints.theme.SoftYellow
+import com.app.lovelyprints.theme.Thunder
 
 
 // --------------------------------------------------
@@ -51,15 +77,13 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
 
-    val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-    val isShopOpen = currentHour in 9..16
-
-
+//    val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+//    val isShopOpen = currentHour in 9..16
 
     var searchQuery by remember { mutableStateOf("") }
 
-    // ✅ SEARCH FILTER (FIX)
-    val filteredShops = remember(searchQuery, uiState.shops, isShopOpen) {
+    // ✅ SEARCH FILTER
+    val filteredShops = remember(searchQuery, uiState.shops) {
 
         val result =
             if (searchQuery.isBlank()) {
@@ -71,12 +95,9 @@ fun HomeScreen(
                 }
             }
 
-        result.map { shop ->
-            shop.copy(
-                isActive = shop.isActive && isShopOpen
-            )
-        }.sortedBy { !it.isActive }
+        result.sortedBy { !it.isActive }
     }
+
 
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
@@ -87,83 +108,76 @@ fun HomeScreen(
                 state = pullToRefreshState,
                 isRefreshing = uiState.isLoading,
                 modifier = Modifier.align(Alignment.TopCenter),
-                containerColor = Color(0xFF363636),
-                color = Color(0xFFFF9500)
+                containerColor = Color.White,
+                color = LimeGreen
             )
         }
     ) {
 
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF151419))
-            .padding(16.dp)
-    ) {
-
-        Text(
-            text = "Available Shops",
-            style = MaterialTheme.typography.headlineLarge,
-            fontFamily = Inter,
-            color = Color(0xFF878787)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Cream)
+                .padding(horizontal = 16.dp)
         )
+        {
 
-        Spacer(Modifier.height(12.dp))
+            Text(
+                text = "Available Shops",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                fontFamily = Inter,
+                color = AlmostBlack
+            )
 
-        FancySearchBar(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            onClearClick = { searchQuery = "" }
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(16.dp))
+            FancySearchBar(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                onClearClick = { searchQuery = "" }
+            )
 
-        when {
-            uiState.isLoading -> {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(6) { SkeletonShopCard() }
-                }
-            }
+            Spacer(Modifier.height(16.dp))
 
-            filteredShops.isEmpty() -> {
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        Text(
-                            text = "Refresh",
-                            color = Color.Gray
-                        )
+            when {
+                uiState.isLoading -> {
+                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(6) { SkeletonShopCard() }
                     }
                 }
-            }
 
-
-            else -> {
-
-                val gradients = listOf(
-                    listOf(Color(0xFFFF952F), Color(0xFFFFAF50)),
-                    listOf(Color(0xFFFFAF50), Color(0xFFFF952F)),
-                    listOf(Color(0xFFFF952F), Color(0xFFFFAF50))
-                )
-
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    itemsIndexed(filteredShops) { index, shop ->
-
-                        Pressable(
-                            enabled = shop.isActive,
-                            onClick = { onShopClick(shop.id) }
-                        )
-                        {
-                            ShopCard(
-                                shop = shop,
-                                gradientColors = gradients[index % gradients.size]
+                filteredShops.isEmpty() -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        item {
+                            Image(
+                                painter = painterResource(R.drawable.connectionlost),
+                                contentDescription = "connection lost",
+                                modifier = Modifier
                             )
+                        }
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(
+                            bottom = 90.dp // 👈 space for floating bottom nav
+                        )
+                    ) {
+                        itemsIndexed(filteredShops) { index, shop ->
+                            Pressable(
+                                enabled = shop.isActive,
+                                onClick = { onShopClick(shop.id) }
+                            ) {
+                                ShopCard(shop = shop)
+                            }
                         }
                     }
                 }
@@ -171,10 +185,9 @@ fun HomeScreen(
         }
     }
 }
-}
 
 // --------------------------------------------------
-// 🔍 SEARCH BAR
+// 🔍 CLEAN SEARCH BAR
 // --------------------------------------------------
 @Composable
 fun FancySearchBar(
@@ -182,22 +195,28 @@ fun FancySearchBar(
     onValueChange: (String) -> Unit,
     onClearClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .background(Color(0xFF363636), RoundedCornerShape(30.dp))
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, AlmostBlack.copy(alpha = 0.6f))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .padding(horizontal = 16.dp)
         ) {
 
-            Icon(Icons.Default.Search, null, tint = Color(0xFFF56E0F))
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
+                tint = AlmostBlack.copy(alpha = 0.6f),
+                modifier = Modifier.size(22.dp)
+            )
 
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(12.dp))
 
             Box(
                 modifier = Modifier.weight(1f),
@@ -206,8 +225,9 @@ fun FancySearchBar(
 
                 if (value.isEmpty()) {
                     Text(
-                        "Search shop",
-                        color = Color.Gray
+                        "Search shop by name or block",
+                        color = MediumGray.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
 
@@ -216,7 +236,8 @@ fun FancySearchBar(
                     onValueChange = onValueChange,
                     singleLine = true,
                     textStyle = LocalTextStyle.current.copy(
-                        color = Color.White
+                        color = AlmostBlack,
+                        fontSize = 16.sp
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -224,7 +245,12 @@ fun FancySearchBar(
 
             if (value.isNotEmpty()) {
                 IconButton(onClick = onClearClick) {
-                    Icon(Icons.Default.Close, null, tint = Color.Gray)
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Clear",
+                        tint = MediumGray,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
         }
@@ -232,42 +258,52 @@ fun FancySearchBar(
 }
 
 // --------------------------------------------------
-// ✨ SHOP CARD
+// ✨ SHOP CARD (NO ANIMATION)
 // --------------------------------------------------
 @Composable
-fun ShopCard(
-    shop: Shop,
-    gradientColors: List<Color>
-) {
+fun ShopCard(shop: Shop) {
     val isActive = shop.isActive
-    val animatedBrush =
-        if (isActive)
-            rememberAnimatedGradient(gradientColors)
-        else
-            Brush.linearGradient(
-                listOf(Color(0xFF3A3A3A), Color(0xFF1E1E1E))
-            )
 
+    // Static gradient - no animation
+    val cardBrush = if (isActive) {
+        Brush.linearGradient(
+            colors = listOf(
+                LimeGreen,
+                LimeGreen
+
+            )
+        )
+    } else {
+        Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFE0E0E0),
+                Color(0xFFBDBDBD)
+            )
+        )
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp)
-            .alpha(if (isActive) 1f else 0.45f),
+            .height(140.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(6.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isActive) 1.dp else 1.dp
+        )
     ) {
-
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(20.dp))
-                .background(animatedBrush)
+                .background(cardBrush)
                 .border(
-                    1.dp,
-                    Color.White.copy(alpha = 0.15f),
+                    1.5.dp,
+                    if (isActive)
+                        Color.White.copy(alpha = 0.5f)
+                    else
+                        Color.White.copy(alpha = 0.3f),
                     RoundedCornerShape(20.dp)
                 )
         ) {
@@ -283,8 +319,10 @@ fun ShopCard(
 
                     Text(
                         text = shop.shopName,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = if (isActive) Color.White else Color.Gray
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = if (isActive) Color.White else Color(0xFF757575)
                     )
 
                     Spacer(Modifier.height(6.dp))
@@ -292,96 +330,79 @@ fun ShopCard(
                     Text(
                         text = "Block: ${shop.block}",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color.White.copy(alpha = 0.95f),
-                            shadow = Shadow(
-                                color = Color(0xFFF57C00).copy(alpha = 0.6f),
-                                offset = Offset(1.5f, 1.5f),
-                                blurRadius = 4f
-                            )
+                            color = if (isActive)
+                                Color.White.copy(alpha = 0.95f)
+                            else
+                                Color(0xFF9E9E9E),
+                            fontWeight = FontWeight.Medium,
+                            shadow = if (isActive) {
+                                Shadow(
+                                    color = AlmostBlack.copy(alpha = 0.3f),
+                                    offset = Offset(1f, 1f),
+                                    blurRadius = 3f
+                                )
+                            } else null
                         )
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            if (shop.isActive)
-                                Color.Transparent
-                            else
-                                Color.Black.copy(alpha = 0.35f)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
+                if (shop.isActive) {
 
-                    if (shop.isActive) {
-
-                        Image(
-                            painter = painterResource(R.drawable.shop),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize()
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.25f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Storefront,
+                            contentDescription = "Shop",
+                            tint = DarkGreen,
+                            modifier = Modifier.size(65.dp)
                         )
-
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(6.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-
-                            Text(
-                                text = "CLOSED",
-                                modifier = Modifier.fillMaxWidth(),
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Center
-                            )
-
-                            Text(
-                                text = "Opens at 9:00 AM",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 1.dp),
-                                color = Color.LightGray,
-                                fontSize = 11.sp,
-                                lineHeight = 13.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
                     }
 
+
+                } else {
+
+                    Column(
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.5f))
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        Text(
+                            text = "CLOSED",
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color(0xFF616161),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(Modifier.height(2.dp))
+
+                        Text(
+                            text = "Opens at 9:00 AM",
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color(0xFF757575),
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-
-// --------------------------------------------------
-// 🎨 ANIMATED GRADIENT
-// --------------------------------------------------
-@Composable
-fun rememberAnimatedGradient(colors: List<Color>): Brush {
-    val transition = rememberInfiniteTransition(label = "gradient")
-
-    val shift by transition.animateFloat(
-        0f,
-        600f,
-        infiniteRepeatable(
-            animation = tween(14000, easing = LinearEasing)
-        ),
-        label = "shift"
-    )
-
-    return Brush.linearGradient(
-        colors = colors,
-        start = Offset(shift, shift),
-        end = Offset(shift + 600f, shift + 600f)
-    )
-}
 
 // --------------------------------------------------
 // 👆 PRESS ANIMATION
@@ -393,17 +414,24 @@ fun Pressable(
     content: @Composable () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = tween(120),
+        label = "scale"
+    )
 
     Box(
         modifier = Modifier
             .graphicsLayer {
-                scaleX = if (enabled) 1f else 1f
-                scaleY = if (enabled) 1f else 1f
+                scaleX = scale
+                scaleY = scale
             }
             .clickable(
                 enabled = enabled,
                 interactionSource = interactionSource,
-                indication = null
+                indication = null // 👈 custom feedback only
             ) {
                 onClick()
             }
@@ -426,7 +454,8 @@ fun SkeletonShopCard() {
             .fillMaxWidth()
             .height(120.dp),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E))
+        colors = CardDefaults.cardColors(containerColor = OffWhite),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(
             modifier = Modifier
@@ -483,12 +512,11 @@ fun rememberShimmerBrush(): Brush {
 
     return Brush.linearGradient(
         listOf(
-            Color(0xFF2A2A2A),
-            Color(0xFF3A3A3A),
-            Color(0xFF2A2A2A)
+            OffWhite.copy(alpha = 0.5f),
+            MediumGray.copy(alpha = 0.2f),
+            Cream.copy(alpha = 0.5f)
         ),
         start = Offset(x - 300f, 0f),
         end = Offset(x, 600f)
     )
 }
-

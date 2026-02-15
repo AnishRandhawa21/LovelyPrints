@@ -64,3 +64,26 @@ val GradientPinkEnd = Color(0xFFFFB6E6)
 
 val GradientSunsetStart = Color(0xFFFFC83D)
 val GradientSunsetEnd = Color(0xFFFF8ED4)
+
+
+
+val DarkGreen = Color(0xFFA7B027)
+val LimeGreen = Color(0xFFC4CD4E)
+val SoftYellow = Color(0xFFFFECA5)
+val GoldenYellow = Color(0xFFFEC345)
+val DeepAmber = Color(0xFFDF9A06)
+
+// Accent Colors
+val CoralRed = Color(0xFFE57373)
+val SoftPink = Color(0xFFF6BADC)
+val SoftBlue = Color(0xFFBACDED)
+val Blue = Color(0xFF82A9EA)
+
+// Backgrounds / Surfaces
+val Cream = Color(0xFFFBF5E7)
+val DarkCream = Color(0xFFF9F7F0)
+val OffWhite = Color(0xFFF0ECDE)
+
+// Neutrals
+val AlmostBlack = Color(0xFF201D1E)
+val MediumGray = Color(0xFF6F6F6F)

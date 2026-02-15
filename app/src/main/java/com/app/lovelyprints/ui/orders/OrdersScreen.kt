@@ -48,7 +48,22 @@ import androidx.compose.ui.graphics.Brush
 import com.app.lovelyprints.data.model.lastSix
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.res.painterResource
 import com.app.lovelyprints.data.model.isExpired
+import com.app.lovelyprints.theme.AlmostBlack // ADDED: Import theme colors
+import com.app.lovelyprints.theme.Cream // ADDED: Import theme colors
+import com.app.lovelyprints.theme.DeepAmber // ADDED: Import theme colors
+import com.app.lovelyprints.theme.GoldenYellow // ADDED: Import theme colors
+import com.app.lovelyprints.theme.LimeGreen
+import com.app.lovelyprints.theme.MediumGray // ADDED: Import theme colors
+import com.app.lovelyprints.theme.OffWhite // ADDED: Import theme colors
+import com.app.lovelyprints.theme.SoftPink
+import androidx.compose.ui.zIndex
+import com.app.lovelyprints.R
+import com.app.lovelyprints.theme.CoralRed
+import com.app.lovelyprints.theme.SoftBlue
 
 
 /* -------------------------------------------------------------------------- */
@@ -81,7 +96,7 @@ fun OrdersScreen(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF151419)
+        color = Cream // CHANGED: from Color(0xFF151419) to Cream
     ) {
 
         PullToRefreshBox(
@@ -94,18 +109,19 @@ fun OrdersScreen(
                     state = pullToRefreshState,
                     isRefreshing = uiState.isLoading,
                     modifier = Modifier.align(Alignment.TopCenter),
-                    containerColor = Color(0xFF363636),
-                    color = Color(0xFFFF9500)
+                    containerColor = Color.White, // CHANGED: from Color(0xFF363636) to Color.White
+                    color = SoftPink // CHANGED: from Color(0xFFFF9500) to GoldenYellow
                 )
             }
         ) {
 
-            Column {
+            Column(
+                modifier = Modifier.padding(top = 0.dp, start = 16.dp, end = 16.dp, bottom = 0.dp) // CHANGED: Added padding control
+            ) {
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
                         .padding(top = 16.dp, bottom = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -113,46 +129,58 @@ fun OrdersScreen(
 
                     Text(
                         text = "Orders",
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineLarge.copy( // CHANGED: Added font weight
+                            fontWeight = FontWeight.Bold
+                        ),
                         fontFamily = Inter,
-                        color = Color(0xFF878787)
+                        color = AlmostBlack // CHANGED: from Color(0xFF878787) to AlmostBlack
                     )
                 }
 
                 Surface(
-                    shadowElevation = 6.dp,
-                    shape = RoundedCornerShape(15.dp),
-                    border = BorderStroke(1.dp, Color(0xFFFF9500)),
-                    color = Color(0xFF363636),
+                    shadowElevation = 0.dp,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.5.dp, AlmostBlack.copy(alpha = 0.6f)),
+                    color = Color.Transparent,
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
                 ) {
-                    TabRow(
-                        selectedTabIndex = selectedTab,
-                        containerColor = Color.Transparent,
-                        contentColor = Color(0xFF878787),
-                        indicator = { tabPositions ->
-                            TabRowDefaults.Indicator(
-                                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                                color = Color(0xFFFF9500)
-                            )
-                        }
-                    ) {
-                        tabs.forEachIndexed { index, title ->
-                            Tab(
-                                selected = selectedTab == index,
-                                onClick = { selectedTab = index },
-                                text = {
-                                    Text(
-                                        title,
-                                        color = if (selectedTab == index)
-                                            Color(0xFFFF9500)
-                                        else Color(0xFFCECECE)
-                                    )
-                                }
-                            )
+                    Box {
+                        // Animated sliding indicator - BEHIND the tabs
+                        TabRow(
+                            selectedTabIndex = selectedTab,
+                            containerColor = Color.Transparent,
+                            contentColor = AlmostBlack,
+                            divider = {},
+                            indicator = { tabPositions ->
+                                Box(
+                                    modifier = Modifier
+                                        .tabIndicatorOffset(tabPositions[selectedTab])
+                                        .fillMaxHeight()
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(AlmostBlack)
+                                        .zIndex(-1f) // Put it BEHIND the text
+                                )
+                            }
+                        ) {
+                            tabs.forEachIndexed { index, title ->
+                                val isSelected = selectedTab == index
+
+                                Tab(
+                                    selected = isSelected,
+                                    onClick = { selectedTab = index },
+                                    modifier = Modifier.zIndex(1f), // Put text in FRONT
+                                    text = {
+                                        Text(
+                                            title,
+                                            color = if (isSelected) Color.White else AlmostBlack.copy(alpha = 0.6f),
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -171,7 +199,7 @@ fun OrdersScreen(
 
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
+                            contentPadding = PaddingValues(vertical = 16.dp), // CHANGED: only vertical padding
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(6) {
@@ -187,7 +215,7 @@ fun OrdersScreen(
                         ) {
                             Text(
                                 text = uiState.error!!,
-                                color = MaterialTheme.colorScheme.error
+                                color = Color(0xFFC62828) // CHANGED: using error red color
                             )
                         }
                     }
@@ -197,21 +225,26 @@ fun OrdersScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text =
-                                    if (selectedTab == 0)
-                                        "No current orders"
-                                    else
-                                        "No order history",
-                                color = Color.Gray
+
+                            Image(
+                                painter = painterResource(id = R.drawable.no_order),
+                                contentDescription = "NO_Order",
                             )
+//                            Text(
+//                                text =
+//                                    if (selectedTab == 0)
+//                                        "No current orders"
+//                                    else
+//                                        "No order history",
+//                                color = MediumGray // CHANGED: from Color.Gray to MediumGray
+//                            )
                         }
                     }
 
                     else -> {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
+                            contentPadding = PaddingValues(vertical = 16.dp), // CHANGED: only vertical padding
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(
@@ -221,7 +254,7 @@ fun OrdersScreen(
                                 ExpandableOrderCard(
                                     order = order,
                                     expanded = expandedOrderId == order.id,
-                                    isHistory = selectedTab == 1, // 👈 THIS LINE
+                                    isHistory = selectedTab == 1,
                                     onClick = {
                                         expandedOrderId =
                                             if (expandedOrderId == order.id) null
@@ -249,7 +282,7 @@ fun PickupOtpBox(otp: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFF1F5A3D)
+        color = Color(0xFF1F5A3D) // KEPT: Green color for OTP box (good for contrast)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -259,7 +292,7 @@ fun PickupOtpBox(otp: String) {
             Text(
                 text = "Pickup Code",
                 style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFFB6EACB)
+                color = Color(0xFFB6EACB) // KEPT: Light green for text
             )
 
             Spacer(Modifier.height(6.dp))
@@ -277,7 +310,7 @@ fun PickupOtpBox(otp: String) {
             Text(
                 text = "Show this code at the shop counter to collect your prints",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFFB6EACB),
+                color = Color(0xFFB6EACB), // KEPT: Light green for text
                 textAlign = TextAlign.Center
             )
         }
@@ -327,31 +360,38 @@ fun StrokedText(
 fun ExpandableOrderCard(
     order: Order,
     expanded: Boolean,
-    isHistory: Boolean,   // 👈 ADD THIS
+    isHistory: Boolean,
     onClick: () -> Unit
 )
- {
+{
 
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
         label = "arrow_rotation"
     )
-     val alpha by animateFloatAsState(
-         targetValue = if (order.isExpired()) 0.55f else 1f,
-         label = "expired_alpha"
-     )
+    val alpha by animateFloatAsState(
+        targetValue = if (order.isExpired()) 0.55f else 1f,
+        label = "expired_alpha"
+    )
 
 
-     Card(
+    val interactionSource = remember { MutableInteractionSource() }
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null // 🔥 disables gray press layer
+            ) {
+                onClick()
+            },
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF363636)
+            containerColor = Color.White // CHANGED: from Color(0xFF363636) to Color.White
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (expanded) 8.dp else 2.dp
-        )
+            defaultElevation = if (expanded) 8.dp else 4.dp // CHANGED: 2.dp to 4.dp
+        ),
+        shape = RoundedCornerShape(16.dp) // CHANGED: Added rounded corners
     ) {
 
         Column(modifier = Modifier.padding(16.dp)) {
@@ -367,20 +407,22 @@ fun ExpandableOrderCard(
                 Column {
                     Text(
                         text = "Order #${order.orderNo}",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White
+                        style = MaterialTheme.typography.titleMedium.copy( // CHANGED: Added bold
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = AlmostBlack // CHANGED: from Color.White to AlmostBlack
                     )
 
                     Text(
                         text = "ID: #${order.id.lastSix()}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF9E9E9E)
+                        color = MediumGray // CHANGED: from Color(0xFF9E9E9E) to MediumGray
                     )
                     order.shop?.shopName?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color(0xFFFFFFFF)
+                            color = AlmostBlack // CHANGED: from Color(0xFFFFFFFF) to AlmostBlack
                         )
                     }
 
@@ -388,7 +430,7 @@ fun ExpandableOrderCard(
                         Text(
                             text = "Placed on $it",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF9E9E9E)
+                            color = MediumGray // CHANGED: from Color(0xFF9E9E9E) to MediumGray
                         )
                     }
                 }
@@ -403,7 +445,7 @@ fun ExpandableOrderCard(
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = AlmostBlack, // CHANGED: from Color.White to AlmostBlack
                         modifier = Modifier
                             .size(28.dp)
                             .rotate(rotation)
@@ -448,18 +490,18 @@ fun ExpandableOrderCard(
                 Column {
 
                     if(!isHistory) {
-                    Spacer(Modifier.height(12.dp))
-                    HorizontalDivider(color = Color(0xFF878787))
-                    Spacer(Modifier.height(12.dp))
+                        Spacer(Modifier.height(12.dp))
+                        HorizontalDivider(color = MediumGray.copy(alpha = 0.3f)) // CHANGED: from Color(0xFF878787) to MediumGray with transparency
+                        Spacer(Modifier.height(12.dp))
 
-                    //Description
+                        //Description
 
                         Column {
 
                             Text(
                                 text = "Description",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = Color(0xFFFFFFFF)
+                                color = AlmostBlack // CHANGED: from Color(0xFFFFFFFF) to AlmostBlack
                             )
 
                             Spacer(modifier = Modifier.height(2.dp))
@@ -467,7 +509,7 @@ fun ExpandableOrderCard(
                             Text(
                                 text = order.notes ?: "No notes",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFB0B0B0),
+                                color = MediumGray, // CHANGED: from Color(0xFFB0B0B0) to MediumGray
                                 lineHeight = 18.sp
                             )
                         }
@@ -490,15 +532,15 @@ fun ExpandableOrderCard(
                                 Text(
                                     text = "Amount:",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White
+                                    color = AlmostBlack // CHANGED: from Color.White to AlmostBlack
                                 )
 
                                 Spacer(modifier = Modifier.width(6.dp))
 
                                 StrokedText(
                                     text = "₹${order.totalPrice}",
-                                    textColor = Color(0xFFFBFFFD),
-                                    strokeColor = Color(0xFF1D6A2B),
+                                    textColor = AlmostBlack, // CHANGED: from Color(0xFFFBFFFD) to AlmostBlack
+                                    strokeColor = LimeGreen, // CHANGED: from Color(0xFF1D6A2B) to GoldenYellow
                                     strokeWidth = 5.5f
                                 )
                             }
@@ -516,7 +558,7 @@ fun ExpandableOrderCard(
                                 !order.isExpired() &&
                                 !order.otpVerified &&
                                 !order.deliveryOtp.isNullOrBlank(),
-                                enter = fadeIn(),
+                        enter = fadeIn(),
                         exit = fadeOut()
                     )
                     {
@@ -524,7 +566,7 @@ fun ExpandableOrderCard(
                         Column {
 
                             Spacer(Modifier.height(12.dp))
-                            HorizontalDivider(color = Color(0xFF878787))
+                            HorizontalDivider(color = MediumGray.copy(alpha = 0.3f)) // CHANGED: from Color(0xFF878787)
                             Spacer(Modifier.height(12.dp))
 
                             PickupOtpBox(
@@ -544,7 +586,7 @@ fun ExpandableOrderCard(
                                             "${doc.pageCount ?: 0} pages • " +
                                             "${doc.copies ?: 1} copies",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFCCCCCC)
+                                color = MediumGray // CHANGED: from Color(0xFFCCCCCC) to MediumGray
                             )
                         }
                     }
@@ -553,7 +595,7 @@ fun ExpandableOrderCard(
                     if (isHistory) {
 
                         Spacer(Modifier.height(12.dp))
-                        HorizontalDivider(color = Color(0xFF878787))
+                        HorizontalDivider(color = MediumGray.copy(alpha = 0.3f)) // CHANGED: from Color(0xFF878787)
                         Spacer(Modifier.height(12.dp))
 
                         OrderBillSection(order)
@@ -574,26 +616,36 @@ fun ExpandableOrderCard(
 fun OrderStatusChip(status: String) {
 
     val color = when (status.lowercase()) {
-        "expired" -> Color(0xFFB3261E)
 
-        "pending" -> Color(0xFF9C5A10)
+        "expired" ->
+            CoralRed // stronger pastel red
 
-        "confirmed" -> Color(0xFF2E4A59)
+        "pending" ->
+            GoldenYellow // stronger pastel amber
 
-        "processing" -> Color(0xFF2E4A59)
+        "confirmed" ->
+            LimeGreen // stronger pastel blue
 
-        "ready" -> Color(0xFF1F5A3D)
+        "processing" ->
+            SoftBlue // slightly deeper blue
 
-        "completed" -> Color(0xFF1F5A3D)
+        "ready" ->
+            Color(0xFFAED581) // stronger pastel green
 
-        "cancelled" -> Color(0xFF6E2B2B)
+        "completed" ->
+            Color(0xFF689F38) // richer pastel green
 
-        else -> Color(0xFF4F4F4F)
+        "cancelled" ->
+            CoralRed // deeper pastel red
+
+        else ->
+            Color(0xFF949494) // stronger neutral gray
     }
+
 
     Surface(
         color = color,
-        shape = MaterialTheme.shapes.small
+        shape = RoundedCornerShape(8.dp) // CHANGED: from MaterialTheme.shapes.small to specific value
     ) {
         Text(
             text = status.uppercase(),
@@ -609,15 +661,15 @@ fun OrderStatusChip(status: String) {
 fun PaymentStatusChip(status: String) {
 
     val color = when (status.lowercase()) {
-        "paid" -> Color(0xFF1F5A3D)
-        "pending" -> Color(0xFF9C5A10)
-        "failed" -> Color(0xFF6E2B2B)
-        else -> Color(0xFF4F4F4F)
+        "paid" -> Color(0xFF1F5A3D) // KEPT: Green for paid
+        "pending" -> DeepAmber // CHANGED: from Color(0xFF9C5A10) to DeepAmber
+        "failed" -> Color(0xFF6E2B2B) // KEPT: Red for failed
+        else -> MediumGray // CHANGED: from Color(0xFF4F4F4F) to MediumGray
     }
 
     Surface(
         color = color,
-        shape = MaterialTheme.shapes.small
+        shape = RoundedCornerShape(8.dp) // CHANGED: from MaterialTheme.shapes.small to specific value
     ) {
         Text(
             text = status.uppercase(),
@@ -639,8 +691,9 @@ fun SkeletonOrderCard() {
             .height(110.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E1E)
-        )
+            containerColor = OffWhite // CHANGED: from Color(0xFF1E1E1E) to Color.White
+        ),
+        elevation = CardDefaults.cardElevation(0.dp) // CHANGED: Added elevation
     ) {
         Box(
             modifier = Modifier
@@ -698,9 +751,9 @@ fun rememberShimmerBrush(): Brush {
 
     return Brush.linearGradient(
         colors = listOf(
-            Color(0xFF2A2A2A),
-            Color(0xFF3A3A3A),
-            Color(0xFF2A2A2A)
+            OffWhite.copy(alpha = 0.5f), // CHANGED: from Color(0xFF2A2A2A) to OffWhite
+            MediumGray.copy(alpha = 0.2f), // CHANGED: from Color(0xFF3A3A3A) to MediumGray
+            OffWhite.copy(alpha = 0.5f) // CHANGED: from Color(0xFF2A2A2A) to OffWhite
         ),
         start = Offset(x - 300f, 0f),
         end = Offset(x, 600f)
@@ -725,7 +778,7 @@ fun BillRow(
                 MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
             else
                 MaterialTheme.typography.bodySmall,
-            color = Color.White
+            color = AlmostBlack // CHANGED: from Color.White to AlmostBlack
         )
 
         Text(
@@ -734,7 +787,7 @@ fun BillRow(
                 MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
             else
                 MaterialTheme.typography.bodySmall,
-            color = Color.White
+            color = AlmostBlack // CHANGED: from Color.White to AlmostBlack
         )
     }
 }
@@ -760,8 +813,10 @@ fun OrderBillSection(order: Order) {
 
         Text(
             text = "Bill Summary",
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.White
+            style = MaterialTheme.typography.labelMedium.copy( // CHANGED: Added bold
+                fontWeight = FontWeight.Bold
+            ),
+            color = AlmostBlack // CHANGED: from Color.White to AlmostBlack
         )
 
         Spacer(Modifier.height(8.dp))
@@ -776,8 +831,9 @@ fun OrderBillSection(order: Order) {
 
             Text(
                 text = doc.fileName ?: "Document",
-                color = Color(0xFFFF9500),
-                fontSize = 13.sp
+                color = GoldenYellow, // CHANGED: from Color(0xFFFF9500) to GoldenYellow
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium // CHANGED: Added medium weight
             )
 
             Spacer(Modifier.height(4.dp))
@@ -792,7 +848,7 @@ fun OrderBillSection(order: Order) {
 
         HorizontalDivider(
             thickness = 1.dp,
-            color = Color(0xFF555555)
+            color = MediumGray.copy(alpha = 0.3f) // CHANGED: from Color(0xFF555555) to MediumGray with transparency
         )
 
         Spacer(Modifier.height(8.dp))
@@ -804,5 +860,3 @@ fun OrderBillSection(order: Order) {
         )
     }
 }
-
-

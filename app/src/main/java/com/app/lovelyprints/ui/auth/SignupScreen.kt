@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,13 +25,24 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
 import com.app.lovelyprints.utils.isValidPassword
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import com.app.lovelyprints.data.model.Organisation
-
+import androidx.compose.foundation.background
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.app.lovelyprints.theme.AlmostBlack
+import com.app.lovelyprints.theme.Cream
+import com.app.lovelyprints.theme.DeepAmber
+import com.app.lovelyprints.theme.LimeGreen
+import com.app.lovelyprints.theme.MediumGray
+import com.app.lovelyprints.theme.OffWhite
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 
 @Composable
 fun SignupScreen(
@@ -51,262 +61,326 @@ fun SignupScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     val isPasswordValid = isValidPassword(password)
 
-
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-
             Toast.makeText(
                 context,
                 "Verify your account via email before logging in",
                 Toast.LENGTH_LONG
             ).show()
-
             onSignupSuccess()
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Cream)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.statusBars)
-                .verticalScroll(rememberScrollState())
+                .systemBarsPadding()
                 .imePadding()
-                .padding(24.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 4.dp
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Signup heading
+            Text(
+                text = "Create Your Account",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
                 ),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF1B1B1E)
+                color = AlmostBlack,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Name field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Name",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = AlmostBlack,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.lovely_prints),
-                        contentDescription = "Logo",
-                        Modifier.size(150.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Sign-up",
-                        color = Color(0xFFFBFBFB),
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.padding(bottom = 32.dp)
-                    )
 
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = {
-                            name = it
-                            viewModel.clearError()
-                        },
-                        label = { Text("Name", color = Color(0xFFFBFBFB)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF56E0F),   // darker orange
-                            unfocusedBorderColor = Color(0xFF424048), // normal orange
-                            focusedLabelColor = Color(0xFFF56E0F),
-                            cursorColor = Color(0xFF424048),
-
-                            focusedTextColor = Color(0xFFFBFBFB),
-                            unfocusedTextColor = Color(0xFFFBFBFB)
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = {
+                        name = it
+                        viewModel.clearError()
+                    },
+                    placeholder = {
+                        Text(
+                            "Enter your full name",
+                            color = MediumGray.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.bodyMedium
                         )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AlmostBlack,
+                        unfocusedBorderColor = AlmostBlack.copy(alpha = 0.6f),
+                        cursorColor = AlmostBlack,
+                        focusedTextColor = AlmostBlack,
+                        unfocusedTextColor = AlmostBlack,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     )
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = {
-                            email = it
-                            viewModel.clearError()
-                        },
-                        label = { Text("Email", color = Color(0xFFFBFBFB)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF56E0F),   // darker orange
-                            unfocusedBorderColor = Color(0xFF424048), // normal orange
-                            focusedLabelColor = Color(0xFFF56E0F),
-                            cursorColor = Color(0xFF424048),
+            // Email field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Email",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = AlmostBlack,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
-                            focusedTextColor = Color(0xFFFBFBFB),
-                            unfocusedTextColor = Color(0xFFFBFBFB)
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = {
+                        email = it
+                        viewModel.clearError()
+                    },
+                    placeholder = {
+                        Text(
+                            "Enter your email",
+                            color = MediumGray.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.bodyMedium
                         )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AlmostBlack,
+                        unfocusedBorderColor = AlmostBlack.copy(alpha = 0.6f),
+                        cursorColor = AlmostBlack,
+                        focusedTextColor = AlmostBlack,
+                        unfocusedTextColor = AlmostBlack,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                )
+            }
 
-                    OrganisationDropdown(
-                        organisations = uiState.organisations,
-                        selectedOrganisation = uiState.selectedOrganisation,
-                        onSelect = { viewModel.selectOrganisation(it) },
-                        isLoading = uiState.isLoadingOrganisations
-                    )
+            Spacer(modifier = Modifier.height(16.dp))
 
-                    Spacer(modifier = Modifier.height(16.dp))
+            // Organisation dropdown
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Organisation",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = AlmostBlack,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
+                OrganisationDropdown(
+                    organisations = uiState.organisations,
+                    selectedOrganisation = uiState.selectedOrganisation,
+                    onSelect = { viewModel.selectOrganisation(it) },
+                    isLoading = uiState.isLoadingOrganisations
+                )
+            }
 
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = {
-                            password = it
-                            passwordTouched = true
-                        },
-                        label = { Text("Password", color = Color(0xFFFBFBFB)) },
+            Spacer(modifier = Modifier.height(16.dp))
 
-                        isError = passwordTouched && !isValidPassword(password),
+            // Password field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Password",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = AlmostBlack,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
-                        supportingText = {
-                            if (passwordTouched && !isValidPassword(password)) {
-                                Text("Password must be at least 8 characters")
-                            }
-                        },
-
-                        visualTransformation =
-                            if (passwordVisible)
-                                VisualTransformation.None
-                            else
-                                PasswordVisualTransformation(),
-
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password
-                        ),
-
-                        trailingIcon = {
-                            val icon =
-                                if (passwordVisible)
-                                    Icons.Default.Visibility
-                                else
-                                    Icons.Default.VisibilityOff
-
-                            IconButton(
-                                onClick = { passwordVisible = !passwordVisible }
-                            ) {
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = null,
-                                    tint = Color(0xFFFBFBFB)
-                                )
-                            }
-                        },
-
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFFF56E0F),
-                            unfocusedBorderColor = Color(0xFF424048),
-                            focusedLabelColor = Color(0xFFF56E0F),
-
-                            cursorColor = Color(0xFF424048),
-
-                            focusedTextColor = Color(0xFFFBFBFB),
-                            unfocusedTextColor = Color(0xFFFBFBFB),
-
-                            // 🔥 THIS IS THE FIX
-                            errorTextColor = Color(0xFFFBFBFB),
-                            errorCursorColor = Color(0xFFFBFBFB)
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = {
+                        password = it
+                        passwordTouched = true
+                    },
+                    placeholder = {
+                        Text(
+                            "Enter your password",
+                            color = MediumGray.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.bodyMedium
                         )
-
-                    )
-
-
-
-                    if (uiState.error != null) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            shape = MaterialTheme.shapes.small,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    isError = passwordTouched && !isValidPassword(password),
+                    supportingText = {
+                        if (passwordTouched && !isValidPassword(password)) {
+                            Text(
+                                "Password must be at least 8 characters",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFC62828)
+                            )
+                        }
+                    },
+                    visualTransformation = if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password
+                    ),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { passwordVisible = !passwordVisible }
                         ) {
-                            Text(
-                                text = uiState.error!!,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(12.dp),
-                                style = MaterialTheme.typography.bodyMedium
+                            Icon(
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                tint = MediumGray.copy(alpha = 0.6f)
                             )
                         }
-                    }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AlmostBlack,
+                        unfocusedBorderColor = AlmostBlack.copy(alpha = 0.6f),
+                        cursorColor = AlmostBlack,
+                        focusedTextColor = AlmostBlack,
+                        unfocusedTextColor = AlmostBlack,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        errorBorderColor = Color(0xFFC62828),
+                        errorTextColor = AlmostBlack,
+                        errorCursorColor = AlmostBlack
+                    )
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Button(
-                        onClick = {
-                            viewModel.signup(
-                                name,
-                                email,
-                                password,
-                                uiState.selectedOrganisation!!.id
-                            )
-                        },
-
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-
-                        shape = RoundedCornerShape(12.dp),
-
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 6.dp,
-                            pressedElevation = 10.dp,
-                            disabledElevation = 0.dp
-                        ),
-
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFFF9500),
-                            disabledContainerColor = Color(0xFFFEAE46),
-                            contentColor = Color.White,
-                            disabledContentColor = Color.White.copy(alpha = 0.6f)
-                        ),
-
-                        enabled =
-                            !uiState.isLoading &&
-                                    name.isNotBlank() &&
-                                    email.isNotBlank() &&
-                                    isPasswordValid &&
-                                    uiState.selectedOrganisation != null
-                    ){
-
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(22.dp),
-                                strokeWidth = 2.dp,
-                                color = Color.White
-                            )
-                        } else {
-                            Text(
-                                text = "Sign Up",
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        }
-                    }
-
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    TextButton(
-                        onClick = onNavigateToLogin,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = Color(0xFFFBFBFB)
-                        )
+            // Error message
+            if (uiState.error != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    color = Color(0xFFFFEBEE),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Already have an account? Login")
+                        Text(
+                            text = "⚠️",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = uiState.error!!,
+                            color = Color(0xFFC62828),
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                 }
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Signup button
+            Button(
+                onClick = {
+                    viewModel.signup(
+                        name,
+                        email,
+                        password,
+                        uiState.selectedOrganisation!!.id
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AlmostBlack,
+                    disabledContainerColor = MediumGray.copy(alpha = 0.4f),
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White.copy(alpha = 0.7f)
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 2.dp,
+                    disabledElevation = 0.dp
+                ),
+                enabled = !uiState.isLoading &&
+                        name.isNotBlank() &&
+                        email.isNotBlank() &&
+                        isPasswordValid &&
+                        uiState.selectedOrganisation != null
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.5.dp,
+                        color = Color.White
+                    )
+                } else {
+                    Text(
+                        text = "Sign Up",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Login prompt
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Already have an account? ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MediumGray
+                )
+                TextButton(
+                    onClick = onNavigateToLogin,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = DeepAmber
+                    ),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = "Sign in",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
@@ -321,58 +395,99 @@ fun OrganisationDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = {
-            if (!isLoading && organisations.isNotEmpty()) {
-                expanded = !expanded
-            }
-        }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (expanded) AlmostBlack else AlmostBlack.copy(alpha = 0.6f)
+        ),
+        color = Color.Transparent
     ) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = {
+                if (!isLoading && organisations.isNotEmpty()) {
+                    expanded = !expanded
+                }
+            }
+        ) {
+            Row(
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = selectedOrganisation?.name
+                        ?: if (!isLoading && organisations.isEmpty())
+                            "No organisations available"
+                        else
+                            "Select your organisation",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (selectedOrganisation != null)
+                        AlmostBlack
+                    else
+                        MediumGray.copy(alpha = 0.4f),
+                    modifier = Modifier.weight(1f)
+                )
 
-        OutlinedTextField(
-            value = selectedOrganisation?.name
-                ?: if (!isLoading && organisations.isEmpty()) "No organisations available"
-                else "",
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Select Organisation", color = Color(0xFFFBFBFB)) },
-            trailingIcon = {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp,
-                        color = Color(0xFFFBFBFB)
+                        color = AlmostBlack
                     )
                 } else {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                    Icon(
+                        imageVector = if (expanded)
+                            Icons.Default.KeyboardArrowUp
+                        else
+                            Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = AlmostBlack.copy(alpha = 0.6f)
+                    )
                 }
-            },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFF56E0F),
-                unfocusedBorderColor = Color(0xFF424048),
-                focusedLabelColor = Color(0xFFF56E0F),
-                cursorColor = Color(0xFF424048),
-                focusedTextColor = Color(0xFFFBFBFB),
-                unfocusedTextColor = Color(0xFFFBFBFB)
-            )
-        )
+            }
 
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            organisations.forEach { organisation ->
-                DropdownMenuItem(
-                    text = { Text(organisation.name) },
-                    onClick = {
-                        onSelect(organisation)
-                        expanded = false
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(Color.White)
+                    .exposedDropdownSize()
+            ) {
+                organisations.forEach { organisation ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                organisation.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = AlmostBlack
+                            )
+                        },
+                        onClick = {
+                            onSelect(organisation)
+                            expanded = false
+                        },
+                        modifier = Modifier.background(
+                            if (selectedOrganisation?.id == organisation.id)
+                                Cream
+                            else
+                                Color.White
+                        )
+                    )
+
+                    if (organisation != organisations.last()) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MediumGray.copy(alpha = 0.1f)
+                        )
                     }
-                )
+                }
             }
         }
     }

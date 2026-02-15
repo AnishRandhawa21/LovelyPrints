@@ -70,6 +70,9 @@ data class Order(
     @SerializedName("created_at")
     val createdAt: String,
 
+//    @SerializedName("pickup_at")
+//    val pickupAt: OffsetDateTime?,
+
     @SerializedName("shops")
     val shop: OrderShop?,
 

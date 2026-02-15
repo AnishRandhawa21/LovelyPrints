@@ -1,9 +1,11 @@
 package com.app.lovelyprints.ui.main
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -13,18 +15,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.lovelyprints.ui.navigation.Routes
+import com.app.lovelyprints.theme.AlmostBlack
+import com.app.lovelyprints.theme.Cream
+import com.app.lovelyprints.theme.LimeGreen
+import com.app.lovelyprints.theme.SoftPink
 
 // ------------------------------------------------------------
 // Model
@@ -36,49 +39,7 @@ data class BottomNavItem(
 )
 
 // ------------------------------------------------------------
-// Fake glass indicator (120Hz safe)
-// ------------------------------------------------------------
-@Composable
-private fun GlassIndicator(
-    selected: Boolean,
-    content: @Composable () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .height(36.dp)
-            .width(64.dp),
-        contentAlignment = Alignment.Center
-    ) {
-
-        if (selected) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(50))
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.35f),
-                                Color.White.copy(alpha = 0.18f)
-                            )
-                        )
-                    )
-                    .border(
-                        BorderStroke(
-                            1.dp,
-                            Color.White.copy(alpha = 0.4f)
-                        ),
-                        RoundedCornerShape(50)
-                    )
-            )
-        }
-
-        content()
-    }
-}
-
-// ------------------------------------------------------------
-// Main Screen
+// Main Screen with Animated Pink Circle
 // ------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,81 +57,117 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Calculate selected index for animation
+    val selectedIndex = bottomNavItems.indexOfFirst { it.route == currentRoute }
+
+    // Store container width
+    var containerWidth by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+
+    // Calculate circle offset based on selected index and container width
+    val circleOffset by animateDpAsState(
+        targetValue = with(density) {
+            when (selectedIndex) {
+                0 -> 40.dp // Left position (Home)
+                1 -> (containerWidth / 2f).toDp() - 26.dp // Center position (Orders)
+                2 -> containerWidth.toDp() - 92.dp // Right position (Profile)
+                else -> (containerWidth / 2f).toDp() - 26.dp
+            }
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy, // Smooth bouncy effect
+            stiffness = Spring.StiffnessLow // Slower, more fluid motion
+        ),
+        label = "circleOffset"
+    )
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground,
+        containerColor = Cream,
+        contentColor = AlmostBlack,
 
         bottomBar = {
             if (currentRoute in bottomNavItems.map { it.route }) {
-
-                NavigationBar(
-                    modifier = Modifier.shadow(
-                        elevation = 12.dp,
-                        shape = RectangleShape,
-                        ambientColor = Color.Black.copy(alpha = 0.5f),
-                        spotColor = Color.Black.copy(alpha = 0.5f)
-                    ),
-                    containerColor = Color(0xFF1B1B1E)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    contentAlignment = Alignment.BottomCenter
                 ) {
+                    // Rounded navbar container
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(70.dp)
+                            .onGloballyPositioned { coordinates ->
+                                containerWidth = coordinates.size.width
+                            },
+                        shape = RoundedCornerShape(35.dp),
+                        color = AlmostBlack,
+                        shadowElevation = 12.dp
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize()) {
 
-                    bottomNavItems.forEach { item ->
+                            // Pink circle indicator that moves
+                            if (containerWidth > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(52.dp)
+                                        .offset(x = circleOffset, y = 9.dp)
+                                        .background(
+                                            color = SoftPink, // Pink color
+                                            shape = CircleShape
+                                        )
+                                )
+                            }
 
-                        val selected = currentRoute == item.route
+                            // Nav items row
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 40.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                bottomNavItems.forEachIndexed { index, item ->
+                                    val selected = currentRoute == item.route
 
-                        val itemColor =
-                            if (selected) Color(0xFFFF8840)
-                            else Color(0xFF878787).copy(alpha = 0.6f)
-
-                        NavigationBarItem(
-
-                            selected = selected,
-
-                            onClick = {
-                                if (currentRoute != item.route) {
-                                    navController.navigate(item.route) {
-                                        popUpTo(
-                                            navController.graph
-                                                .findStartDestination().id
-                                        ) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
+                                    IconButton(
+                                        onClick = {
+                                            if (currentRoute != item.route) {
+                                                navController.navigate(item.route) {
+                                                    popUpTo(
+                                                        navController.graph
+                                                            .findStartDestination().id
+                                                    ) {
+                                                        saveState = true
+                                                    }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.size(52.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = item.icon,
+                                            contentDescription = item.label,
+                                            tint = if (selected) AlmostBlack else Color.White,
+                                            modifier = Modifier.size(26.dp)
+                                        )
                                     }
                                 }
-                            },
-
-                            icon = {
-                                GlassIndicator(selected = selected) {
-                                    Icon(
-                                        imageVector = item.icon,
-                                        contentDescription = item.label,
-                                        tint = itemColor
-                                    )
-                                }
-                            },
-
-                            label = {
-                                Text(
-                                    text = item.label,
-                                    fontSize = 11.sp,
-                                    color = itemColor
-                                )
-                            },
-
-                            colors = NavigationBarItemDefaults.colors(
-                                indicatorColor = Color.Transparent,
-                                selectedIconColor = itemColor,
-                                unselectedIconColor = itemColor,
-                                selectedTextColor = itemColor,
-                                unselectedTextColor = itemColor
-                            )
-                        )
+                            }
+                        }
                     }
                 }
             }
         }
     ) { paddingValues ->
-        content(Modifier.padding(paddingValues))
+        content(
+            Modifier
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+        )
     }
+
 }

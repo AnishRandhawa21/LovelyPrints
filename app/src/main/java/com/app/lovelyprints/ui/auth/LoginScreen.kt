@@ -3,7 +3,6 @@ package com.app.lovelyprints.ui.auth
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -28,8 +26,15 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.VisualTransformation
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalContext
-import com.app.lovelyprints.theme.TextSecondary
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import com.app.lovelyprints.theme.AlmostBlack
+import com.app.lovelyprints.theme.Cream
+import com.app.lovelyprints.theme.DeepAmber
+import com.app.lovelyprints.theme.LimeGreen
+import com.app.lovelyprints.theme.MediumGray
 
 @Composable
 fun LoginScreen(
@@ -39,12 +44,10 @@ fun LoginScreen(
 ) {
     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
-
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
-
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -57,63 +60,63 @@ fun LoginScreen(
             Log.d("AUTH", "Error: ${uiState.error}")
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
 
-        Image(
-            painter = painterResource(R.drawable.background),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize()
-
-        )
-
-
-
-        // 🔹 Content layer (respects status bar)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Cream)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .systemBarsPadding()   // 👈 not windowInsetsPadding
+                .systemBarsPadding()
                 .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
+                .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
-        )
-        {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
-            ),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1B1B1E)
-            )
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
+            Spacer(modifier = Modifier.height(40.dp))
 
-        Image(
-            painter = painterResource(id = R.drawable.lovely_prints),
-            contentDescription = "Logo",
-            Modifier.size(150.dp)
-        )
+            // Logo
+            Image(
+                painter = painterResource(id = R.drawable.kaagazlogo),
+                contentDescription = "Logo",
+                modifier = Modifier.size(110.dp)
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Login",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(bottom = 32.dp),
-            color = Color(0xFFFBFBFB)
-        )
+            // Welcome text
+            Text(
+                text = "Welcome to",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MediumGray,
+                textAlign = TextAlign.Center
+            )
+
+            Text(
+                text = "KaagaZ",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = AlmostBlack,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Email field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Email",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = AlmostBlack,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
                 OutlinedTextField(
                     value = email,
@@ -121,24 +124,69 @@ fun LoginScreen(
                         email = it
                         viewModel.clearError()
                     },
-                    label = { Text("Email", color = Color(0xFFFBFBFB)) },
+                    placeholder = {
+                        Text(
+                            "Enter your email",
+                            color = MediumGray.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFFF56E0F),
-                        unfocusedBorderColor = Color(0xFF424048),
-                        focusedLabelColor = Color(0xFFF56E0F),
-                        cursorColor = Color(0xFF424048),
-
-                        // 🔥 THIS is what you need
-                        focusedTextColor = Color(0xFFFBFBFB),
-                        unfocusedTextColor = Color(0xFFFBFBFB)
+                        focusedBorderColor = AlmostBlack,
+                        unfocusedBorderColor = AlmostBlack.copy(alpha = 0.6f),
+                        cursorColor = AlmostBlack,
+                        focusedTextColor = AlmostBlack,
+                        unfocusedTextColor = AlmostBlack,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     )
                 )
+            }
 
+            Spacer(modifier = Modifier.height(8.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
+            // Password field
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Password",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = AlmostBlack
+                    )
+
+                    TextButton(
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://www.lovelyprints.co.in/forgot-password")
+                            )
+                            context.startActivity(intent)
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = DeepAmber
+                        ),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Forgot?",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
+                }
+
+//                Spacer(modifier = Modifier.height(6.dp))
 
                 OutlinedTextField(
                     value = password,
@@ -146,153 +194,143 @@ fun LoginScreen(
                         password = it
                         viewModel.clearError()
                     },
-                    label = { Text("Password", color = Color(0xFFFBFBFB)) },
+                    placeholder = {
+                        Text(
+                            "Enter your password",
+                            color = MediumGray.copy(alpha = 0.4f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-
+                    shape = RoundedCornerShape(12.dp),
                     visualTransformation = if (passwordVisible) {
                         VisualTransformation.None
                     } else {
                         PasswordVisualTransformation()
                     },
-
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password
                     ),
-
                     trailingIcon = {
-
-                        val icon =
-                            if (passwordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff
-
                         IconButton(
                             onClick = { passwordVisible = !passwordVisible }
                         ) {
                             Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = Color(0xFFFBFBFB)
+                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                tint = MediumGray.copy(alpha = 0.6f)
                             )
                         }
                     },
-
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFFF56E0F),
-                        unfocusedBorderColor = Color(0xFF424048),
-                        focusedLabelColor = Color(0xFFF56E0F),
-                        cursorColor = Color(0xFF424048),
-                        focusedTextColor = Color(0xFFFBFBFB),
-                        unfocusedTextColor = Color(0xFFFBFBFB)
+                        focusedBorderColor = AlmostBlack,
+                        unfocusedBorderColor = AlmostBlack.copy(alpha = 0.6f),
+                        cursorColor = AlmostBlack,
+                        focusedTextColor = AlmostBlack,
+                        unfocusedTextColor = AlmostBlack,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
                     )
                 )
-
-
-
-                if (uiState.error != null) {
-            Surface(
-                color = MaterialTheme.colorScheme.errorContainer,
-                shape = MaterialTheme.shapes.small,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-            ) {
-                Text(
-                    text = uiState.error!!,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
-        }
-                Spacer(modifier = Modifier.height(24.dp))
 
-
-                Button(
-                    onClick = {
-                        Log.d("AUTH", "LOGIN BUTTON CLICKED")
-                        viewModel.login(email, password)
-                    },
-
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-
-                    // 🎯 Rounded, modern shape
-                    shape = RoundedCornerShape(12.dp),
-
-                    // 🎯 Natural Material elevation (better than colored shadow)
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 6.dp,
-                        pressedElevation = 10.dp,
-                        disabledElevation = 0.dp
-                    ),
-
-                    // 🎯 Clean color setup
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFF9500),
-                        disabledContainerColor = Color(0xFFFEAE46),
-                        contentColor = Color.White,
-                        disabledContentColor = Color.White.copy(alpha = 0.9f)
-                    ),
-
-                    enabled = !uiState.isLoading &&
-                            email.isNotBlank() &&
-                            password.isNotBlank()
+            // Error message
+            if (uiState.error != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    color = Color(0xFFFFEBEE),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(22.dp),
-                            strokeWidth = 2.dp,
-                            color = Color.White
-                        )
-                    } else {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "Login",
-                            style = MaterialTheme.typography.labelLarge
+                            text = "⚠️",
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = uiState.error!!,
+                            color = Color(0xFFC62828),
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
-                TextButton(
-                    onClick = {
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://www.lovelyprints.co.in/forgot-password")
-                        )
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(top = 1.dp),
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = TextSecondary
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Login button
+            Button(
+                onClick = {
+                    Log.d("AUTH", "LOGIN BUTTON CLICKED")
+                    viewModel.login(email, password)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AlmostBlack,
+                    disabledContainerColor = MediumGray.copy(alpha = 0.4f),
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White.copy(alpha = 0.7f)
+                ),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 2.dp,
+                    disabledElevation = 0.dp
+                ),
+                enabled = !uiState.isLoading && email.isNotBlank() && password.isNotBlank()
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.5.dp,
+                        color = Color.White
                     )
-                ) {
+                } else {
                     Text(
-                        text = "Forgot password?",
-                        style = MaterialTheme.typography.labelMedium
+                        text = "Sign In",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
                     )
                 }
+            }
 
-                Divider(
-                    color = Color(0xFF424048),
-                    thickness = 1.dp
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sign up prompt
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Don't have an account? ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MediumGray
                 )
+                TextButton(
+                    onClick = onNavigateToSignup,
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = DeepAmber
+                    ),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = "Sign up",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
 
-        TextButton(
-            onClick = onNavigateToSignup,
-            colors = ButtonDefaults.textButtonColors(
-                contentColor = Color(0xFFFBFBFB)
-            )
-        ) {
-            Text("Don't have an account? Sign up")
+            Spacer(modifier = Modifier.height(40.dp))
         }
-    }
-
-    }
-    }
     }
 }
