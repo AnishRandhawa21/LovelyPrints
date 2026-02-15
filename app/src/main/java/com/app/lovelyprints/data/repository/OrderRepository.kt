@@ -21,7 +21,8 @@ class OrderRepository(
         shopId: String,
         description: String,
         orientation: PrintOrientation,
-        isUrgent: Boolean
+        isUrgent: Boolean,
+        pickupAt: String?
     ): Result<CreateOrderResponse> {
         return try {
             val response = orderApi.createOrder(
@@ -29,7 +30,8 @@ class OrderRepository(
                     shopId = shopId,
                     description = description,
                     orientation = orientation,
-                    isUrgent = isUrgent
+                    isUrgent = isUrgent,
+                    pickupAt = pickupAt
                 )
             )
             if (!response.isSuccessful) {
@@ -107,7 +109,8 @@ class OrderRepository(
         copies: Int,
         paperTypeId: String,
         colorModeId: String,
-        finishTypeId: String
+        finishTypeId: String,
+        pickupAt: String?
     ): Result<Unit> {
         return try {
             val response = orderApi.attachDocument(
@@ -119,7 +122,8 @@ class OrderRepository(
                     copies = copies,
                     paperTypeId = paperTypeId,
                     colorModeId = colorModeId,
-                    finishTypeId = finishTypeId
+                    finishTypeId = finishTypeId,
+                    pickupAt = pickupAt
                 )
             )
 

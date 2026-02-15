@@ -30,9 +30,11 @@ data class CreateOrderUiState(
     val copies: Int = 1,
     val orientation: PrintOrientation = PrintOrientation.PORTRAIT,
     val isUrgent: Boolean = false,
+    val pickupAt: String? = null,
     val error: String? = null,
     val isSuccess: Boolean = false,
     val currentStep: OrderStep = OrderStep.LOADING_OPTIONS
+
 )
 
 enum class OrderStep {
@@ -148,6 +150,13 @@ class CreateOrderViewModel(
         }
     }
 
+    fun setPickupAt(pickupAtIso: String) {
+        _uiState.update {
+            it.copy(pickupAt = pickupAtIso)
+        }
+    }
+
+
 
     /* ---------------- ORDER FLOW ---------------- */
 
@@ -205,7 +214,8 @@ class CreateOrderViewModel(
                 shopId = shopId,
                 description = state.description.ifBlank { "Print order" },
                 orientation = state.orientation,
-                isUrgent = state.isUrgent
+                isUrgent = state.isUrgent,
+                pickupAt = state.pickupAt
             )
 
             if (orderResult !is Result.Success) {
@@ -267,7 +277,8 @@ class CreateOrderViewModel(
                 copies = state.copies,
                 paperTypeId = paper.id,
                 colorModeId = color.id,
-                finishTypeId = finish.id
+                finishTypeId = finish.id,
+                pickupAt = state.pickupAt
             )
 
             if (attachResult !is Result.Success) {

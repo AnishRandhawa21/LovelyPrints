@@ -16,7 +16,12 @@ data class CreateOrderRequest(
     val orientation: PrintOrientation,
 
     @SerializedName("is_urgent")
-    val isUrgent: Boolean
+    val isUrgent: Boolean,
+
+    @SerializedName("pickup_at")
+    val pickupAt: String? = null
+
+
 )
 
 data class CreateOrderResponse(
@@ -70,8 +75,8 @@ data class Order(
     @SerializedName("created_at")
     val createdAt: String,
 
-//    @SerializedName("pickup_at")
-//    val pickupAt: OffsetDateTime?,
+    @SerializedName("pickup_at")
+    val pickupAt: String?,
 
     @SerializedName("shops")
     val shop: OrderShop?,

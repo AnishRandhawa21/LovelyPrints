@@ -8,7 +8,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
-
 class ApiClient(
     private val tokenManager: TokenManager,
     private val onUnauthorized: () -> Unit
@@ -16,7 +15,7 @@ class ApiClient(
 
     companion object {
         private const val BASE_URL =
-            "api here"
+            "URL here"
     }
 
     private val authInterceptor = Interceptor { chain ->

@@ -55,7 +55,16 @@ import com.app.lovelyprints.theme.OffWhite
 import com.app.lovelyprints.theme.SoftBlue
 import com.app.lovelyprints.theme.SoftPink
 import com.app.lovelyprints.theme.SoftYellow
-
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material.icons.filled.CalendarToday
+import java.text.SimpleDateFormat
+import java.util.*
 /* -------------------------------------------------- */
 /* ---------------- MAIN SCREEN ----------------------*/
 /* -------------------------------------------------- */
@@ -118,6 +127,7 @@ fun CreateOrderScreen(
                 onOrientationChange = viewModel::setOrientation,
                 onUrgentChange = viewModel::setUrgent,
                 onDescriptionChange = viewModel::setDescription,
+                onPickupAtChange = viewModel::setPickupAt,
                 onSubmit = {
 
                     if (activity == null) return@SelectOptionsContent
@@ -251,6 +261,7 @@ fun SelectOptionsContent(
     onOrientationChange: (PrintOrientation) -> Unit,
     onUrgentChange: (Boolean) -> Unit,
     onDescriptionChange: (String) -> Unit,
+    onPickupAtChange: (String) -> Unit,
     onSubmit: () -> Unit
 )
 {
@@ -679,6 +690,12 @@ fun SelectOptionsContent(
                         value = uiState.description,
                         onValueChange = onDescriptionChange
                     )
+                    Spacer(Modifier.height(24.dp))
+
+                    PickupDateTimeSection(
+                        value = uiState.pickupAt,
+                        onValueChange = onPickupAtChange
+                    )
 
 
 
@@ -944,7 +961,7 @@ fun startRazorpayPayment(
     try {
         val checkout = Checkout()
 
-        checkout.setKeyID("API here")
+        checkout.setKeyID("Api here")
 
         val options = JSONObject()
         options.put("name", "Lovely Prints")
@@ -1107,4 +1124,202 @@ fun GradientDot() {
                 )
             )
     )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PickupDateTimeSection(
+    value: String?,
+    onValueChange: (String) -> Unit
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    var selectedDateMillis by remember { mutableStateOf<Long?>(null) }
+    var selectedHour by remember { mutableStateOf(9) }
+    var selectedMinute by remember { mutableStateOf(0) }
+
+    Column {
+        Text(
+            text = "Pickup Date & Time",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = AlmostBlack
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = if (value != null) OffWhite.copy(alpha = 0.3f) else Color.Transparent,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .border(
+                    width = if (value != null) 2.dp else 1.5.dp,
+                    color = if (value != null) SoftBlue else AlmostBlack.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .clickable { showDatePicker = true }
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (value != null) {
+                            formatPickupDateTime(value)
+                        } else {
+                            "Select pickup date & time (optional)"
+                        },
+                        color = if (value != null) AlmostBlack else MediumGray.copy(alpha = 0.5f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (value != null) FontWeight.SemiBold else FontWeight.Normal
+                    )
+
+                    if (value != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Tap to change",
+                            color = SoftBlue,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                Icon(
+                    imageVector = Icons.Default.CalendarToday,
+                    contentDescription = "Select date & time",
+                    tint = if (value != null) SoftBlue else MediumGray,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "When would you like to pick up your order?",
+            style = MaterialTheme.typography.bodySmall,
+            color = MediumGray
+        )
+    }
+
+    // Date Picker Dialog
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedDateMillis = datePickerState.selectedDateMillis
+                        showDatePicker = false
+                        showTimePicker = true
+                    }
+                ) {
+                    Text("Next", color = SoftBlue)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel", color = MediumGray)
+                }
+            },
+            colors = DatePickerDefaults.colors(
+                containerColor = Cream
+            )
+        ) {
+            DatePicker(
+                state = datePickerState,
+                colors = DatePickerDefaults.colors(
+                    selectedDayContainerColor = SoftBlue,
+                    todayContentColor = SoftBlue,
+                    todayDateBorderColor = SoftBlue
+                )
+            )
+        }
+    }
+
+    // Time Picker Dialog
+    if (showTimePicker) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = selectedHour,
+            initialMinute = selectedMinute,
+            is24Hour = false
+        )
+
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        selectedHour = timePickerState.hour
+                        selectedMinute = timePickerState.minute
+
+                        // Combine date and time into ISO format
+                        selectedDateMillis?.let { dateMillis ->
+                            val calendar = Calendar.getInstance().apply {
+                                timeInMillis = dateMillis
+                                set(Calendar.HOUR_OF_DAY, selectedHour)
+                                set(Calendar.MINUTE, selectedMinute)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+
+                            val isoFormat = SimpleDateFormat(
+                                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                                Locale.getDefault()
+                            ).apply {
+                                timeZone = TimeZone.getTimeZone("UTC")
+                            }
+
+                            onValueChange(isoFormat.format(calendar.time))
+                        }
+
+                        showTimePicker = false
+                    }
+                ) {
+                    Text("Confirm", color = SoftBlue)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancel", color = MediumGray)
+                }
+            },
+            text = {
+                TimePicker(
+                    state = timePickerState,
+                    colors = TimePickerDefaults.colors(
+                        clockDialColor = OffWhite,
+                        selectorColor = SoftBlue,
+                        clockDialSelectedContentColor = Color.White,
+                        clockDialUnselectedContentColor = AlmostBlack
+                    )
+                )
+            },
+            containerColor = Cream,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+}
+
+// Helper function
+fun formatPickupDateTime(isoString: String): String {
+    return try {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val date = inputFormat.parse(isoString)
+
+        val outputFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
+        outputFormat.format(date ?: Date())
+    } catch (e: Exception) {
+        "Invalid date"
+    }
 }

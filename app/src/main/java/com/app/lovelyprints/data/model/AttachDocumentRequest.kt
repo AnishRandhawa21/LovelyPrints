@@ -21,5 +21,8 @@ data class AttachDocumentRequest(
     val colorModeId: String,
 
     @SerializedName("finish_type_id")
-    val finishTypeId: String
+    val finishTypeId: String,
+
+    @SerializedName("pickup_at")
+    val pickupAt: String?
 )
