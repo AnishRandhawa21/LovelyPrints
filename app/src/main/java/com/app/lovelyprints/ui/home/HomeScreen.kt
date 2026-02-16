@@ -62,6 +62,7 @@ import com.app.lovelyprints.theme.PastelLavender
 import com.app.lovelyprints.theme.SoftPink
 import com.app.lovelyprints.theme.SoftYellow
 import com.app.lovelyprints.theme.Thunder
+import com.app.lovelyprints.theme.White
 
 
 // --------------------------------------------------
@@ -97,7 +98,8 @@ fun HomeScreen(
 
         result.sortedBy { !it.isActive }
     }
-
+    val isSearching = searchQuery.isNotBlank()
+    val noSearchResults = isSearching && filteredShops.isEmpty()
 
     PullToRefreshBox(
         isRefreshing = uiState.isLoading,
@@ -148,21 +150,30 @@ fun HomeScreen(
                     }
                 }
 
-                filteredShops.isEmpty() -> {
-                    LazyColumn(
+                noSearchResults -> {
+                    Box(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        contentAlignment = Alignment.Center
                     ) {
-                        item {
-                            Image(
-                                painter = painterResource(R.drawable.connectionlost),
-                                contentDescription = "connection lost",
-                                modifier = Modifier
-                            )
-                        }
+                        Image(
+                            painter = painterResource(R.drawable.noshop), // 👈 new image
+                            contentDescription = "No shops found"
+                        )
                     }
                 }
+
+                uiState.shops.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.connectionlost),
+                            contentDescription = "No internet"
+                        )
+                    }
+                }
+
 
                 else -> {
                     LazyColumn(
@@ -268,8 +279,8 @@ fun ShopCard(shop: Shop) {
     val cardBrush = if (isActive) {
         Brush.linearGradient(
             colors = listOf(
-                LimeGreen,
-                LimeGreen
+                Color(0xFF9CCC65),
+                Color(0xFF689F38)
 
             )
         )
@@ -358,7 +369,7 @@ fun ShopCard(shop: Shop) {
                         Icon(
                             imageVector = Icons.Outlined.Storefront,
                             contentDescription = "Shop",
-                            tint = DarkGreen,
+                            tint = White,
                             modifier = Modifier.size(65.dp)
                         )
                     }
@@ -452,7 +463,7 @@ fun SkeletonShopCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp),
+            .height(140.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = OffWhite),
         elevation = CardDefaults.cardElevation(0.dp)
@@ -512,9 +523,9 @@ fun rememberShimmerBrush(): Brush {
 
     return Brush.linearGradient(
         listOf(
-            OffWhite.copy(alpha = 0.5f),
-            MediumGray.copy(alpha = 0.2f),
-            Cream.copy(alpha = 0.5f)
+            MediumGray.copy(alpha = 0.5f),
+            OffWhite.copy(alpha = 0.2f),
+            MediumGray.copy(alpha = 0.5f)
         ),
         start = Offset(x - 300f, 0f),
         end = Offset(x, 600f)

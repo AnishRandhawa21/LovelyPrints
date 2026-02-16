@@ -8,7 +8,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import com.app.lovelyprints.R
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 
+val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF2E7D32),      // green cursor & selection
+    onPrimary = Color.White,
+
+    secondary = Color(0xFF1976D2),
+    background = Cream,
+    surface = Color.White,
+
+    onBackground = AlmostBlack,
+    onSurface = AlmostBlack
+)
 val Typography = Typography(
     bodyLarge = TextStyle(
         fontWeight = FontWeight.Normal,

@@ -43,6 +43,9 @@ import com.app.lovelyprints.theme.MediumGray
 import com.app.lovelyprints.theme.OffWhite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import com.app.lovelyprints.theme.Blue
+import com.app.lovelyprints.theme.SoftBlue
+import com.app.lovelyprints.theme.White
 
 @Composable
 fun SignupScreen(
@@ -367,7 +370,7 @@ fun SignupScreen(
                 TextButton(
                     onClick = onNavigateToLogin,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = DeepAmber
+                        contentColor = Blue
                     ),
                     contentPadding = PaddingValues(0.dp)
                 ) {
@@ -456,31 +459,37 @@ fun OrganisationDropdown(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .background(Color.White)
-                    .exposedDropdownSize()
-            ) {
+                modifier = Modifier.exposedDropdownSize(),
+                containerColor = OffWhite
+            )
+            {
                 organisations.forEach { organisation ->
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                organisation.name,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = AlmostBlack
-                            )
+                            val isSelected = selectedOrganisation?.id == organisation.id
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .background(
+                                        color = if (isSelected) SoftBlue else OffWhite,
+                                        shape = RoundedCornerShape(10.dp)
+                                    )
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                Text(
+                                    text = organisation.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = AlmostBlack
+                                )
+                            }
                         },
                         onClick = {
                             onSelect(organisation)
                             expanded = false
-                        },
-                        modifier = Modifier.background(
-                            if (selectedOrganisation?.id == organisation.id)
-                                Cream
-                            else
-                                Color.White
-                        )
+                        }
                     )
-
                     if (organisation != organisations.last()) {
                         HorizontalDivider(
                             thickness = 1.dp,

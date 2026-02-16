@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.app.lovelyprints.theme.AlmostBlack
+import com.app.lovelyprints.theme.Blue
 import com.app.lovelyprints.theme.Cream
 import com.app.lovelyprints.theme.DeepAmber
 import com.app.lovelyprints.theme.LimeGreen
@@ -173,7 +174,7 @@ fun LoginScreen(
                             context.startActivity(intent)
                         },
                         colors = ButtonDefaults.textButtonColors(
-                            contentColor = DeepAmber
+                            contentColor = Blue
                         ),
                         contentPadding = PaddingValues(0.dp)
                     ) {
@@ -317,7 +318,7 @@ fun LoginScreen(
                 TextButton(
                     onClick = onNavigateToSignup,
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor = DeepAmber
+                        contentColor = Blue
                     ),
                     contentPadding = PaddingValues(0.dp)
                 ) {

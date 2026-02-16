@@ -15,6 +15,10 @@ import java.io.File
 import android.content.Context
 import com.app.lovelyprints.utils.PdfUtils
 import kotlinx.coroutines.flow.update
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 /* ---------------- UI STATE ---------------- */
 
@@ -61,6 +65,14 @@ class CreateOrderViewModel(
 
     init {
         loadPrintOptions()
+    }
+    // Add this function inside CreateOrderViewModel class
+    fun setPickupDate(dateMillis: Long) {
+        _uiState.update {
+            it.copy(
+                pickupAt = null // Clear any existing pickupAt when date changes
+            )
+        }
     }
 
     /* ---------------- LOAD OPTIONS ---------------- */
@@ -150,6 +162,7 @@ class CreateOrderViewModel(
         }
     }
 
+    // Keep this function UNCHANGED:
     fun setPickupAt(pickupAtIso: String) {
         _uiState.update {
             it.copy(pickupAt = pickupAtIso)
@@ -385,5 +398,9 @@ class CreateOrderViewModel(
             )
         }
     }
+
+    // Time and Date
+
+
 
 }

@@ -63,6 +63,7 @@ import com.app.lovelyprints.theme.SoftPink
 import androidx.compose.ui.zIndex
 import com.app.lovelyprints.R
 import com.app.lovelyprints.theme.CoralRed
+import com.app.lovelyprints.theme.DarkGreen
 import com.app.lovelyprints.theme.SoftBlue
 
 
@@ -215,7 +216,7 @@ fun OrdersScreen(
                         ) {
                             Text(
                                 text = uiState.error!!,
-                                color = Color(0xFFC62828) // CHANGED: using error red color
+                                color = CoralRed // CHANGED: using error red color
                             )
                         }
                     }
@@ -389,7 +390,7 @@ fun ExpandableOrderCard(
             containerColor = Color.White // CHANGED: from Color(0xFF363636) to Color.White
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (expanded) 8.dp else 4.dp // CHANGED: 2.dp to 4.dp
+            defaultElevation = if (expanded) 4.dp else 2.dp // CHANGED: 2.dp to 4.dp
         ),
         shape = RoundedCornerShape(16.dp) // CHANGED: Added rounded corners
     ) {
@@ -540,8 +541,8 @@ fun ExpandableOrderCard(
                                 StrokedText(
                                     text = "₹${order.totalPrice}",
                                     textColor = AlmostBlack, // CHANGED: from Color(0xFFFBFFFD) to AlmostBlack
-                                    strokeColor = LimeGreen, // CHANGED: from Color(0xFF1D6A2B) to GoldenYellow
-                                    strokeWidth = 5.5f
+                                    strokeColor = DarkGreen, // CHANGED: from Color(0xFF1D6A2B) to GoldenYellow
+                                    strokeWidth = 2.5f
                                 )
                             }
 
@@ -618,28 +619,28 @@ fun OrderStatusChip(status: String) {
     val color = when (status.lowercase()) {
 
         "expired" ->
-            CoralRed // stronger pastel red
+            Color(0xFFD32F2F) // strong red
 
         "pending" ->
-            GoldenYellow // stronger pastel amber
+            Color(0xFFF9A825) // amber / yellow
 
         "confirmed" ->
-            LimeGreen // stronger pastel blue
+            Color(0xFF1976D2) // BLUE (confirmation / success)
 
         "processing" ->
-            SoftBlue // slightly deeper blue
+            Color(0xFF0288D1) // lighter blue (in progress)
 
         "ready" ->
-            Color(0xFFAED581) // stronger pastel green
+            Color(0xFF388E3C) // GREEN (ready to go)
 
         "completed" ->
-            Color(0xFF689F38) // richer pastel green
+            Color(0xFF2E7D32) // darker green (final state)
 
         "cancelled" ->
-            CoralRed // deeper pastel red
+            Color(0xFFD32F2F) // deep red
 
         else ->
-            Color(0xFF949494) // stronger neutral gray
+            Color(0xFF757575) // neutral gray
     }
 
 
@@ -661,7 +662,7 @@ fun OrderStatusChip(status: String) {
 fun PaymentStatusChip(status: String) {
 
     val color = when (status.lowercase()) {
-        "paid" -> Color(0xFF1F5A3D) // KEPT: Green for paid
+        "paid" -> Color(0xFF689F38) // KEPT: Green for paid
         "pending" -> DeepAmber // CHANGED: from Color(0xFF9C5A10) to DeepAmber
         "failed" -> Color(0xFF6E2B2B) // KEPT: Red for failed
         else -> MediumGray // CHANGED: from Color(0xFF4F4F4F) to MediumGray
@@ -751,9 +752,9 @@ fun rememberShimmerBrush(): Brush {
 
     return Brush.linearGradient(
         colors = listOf(
-            OffWhite.copy(alpha = 0.5f), // CHANGED: from Color(0xFF2A2A2A) to OffWhite
-            MediumGray.copy(alpha = 0.2f), // CHANGED: from Color(0xFF3A3A3A) to MediumGray
-            OffWhite.copy(alpha = 0.5f) // CHANGED: from Color(0xFF2A2A2A) to OffWhite
+            MediumGray.copy(alpha = 0.5f), // CHANGED: from Color(0xFF2A2A2A) to OffWhite
+            OffWhite.copy(alpha = 0.2f), // CHANGED: from Color(0xFF3A3A3A) to MediumGray
+            MediumGray.copy(alpha = 0.5f) // CHANGED: from Color(0xFF2A2A2A) to OffWhite
         ),
         start = Offset(x - 300f, 0f),
         end = Offset(x, 600f)
@@ -831,7 +832,7 @@ fun OrderBillSection(order: Order) {
 
             Text(
                 text = doc.fileName ?: "Document",
-                color = GoldenYellow, // CHANGED: from Color(0xFFFF9500) to GoldenYellow
+                color = Color(0xFF1976D2), // CHANGED: from Color(0xFFFF9500) to GoldenYellow
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium // CHANGED: Added medium weight
             )

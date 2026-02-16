@@ -8,7 +8,6 @@ import android.provider.OpenableColumns
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,23 +45,17 @@ import com.app.lovelyprints.theme.AlmostBlack
 import com.app.lovelyprints.theme.Blue
 import com.app.lovelyprints.theme.CoralRed
 import com.app.lovelyprints.theme.Cream
-import com.app.lovelyprints.theme.DeepAmber
 import com.app.lovelyprints.theme.GoldenYellow
-import com.app.lovelyprints.theme.InfoBlue
 import com.app.lovelyprints.theme.LimeGreen
 import com.app.lovelyprints.theme.MediumGray
 import com.app.lovelyprints.theme.OffWhite
 import com.app.lovelyprints.theme.SoftBlue
-import com.app.lovelyprints.theme.SoftPink
-import com.app.lovelyprints.theme.SoftYellow
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material.icons.filled.CalendarToday
+import com.app.lovelyprints.theme.DarkBlue
+import com.app.lovelyprints.theme.DarkGreen
 import java.text.SimpleDateFormat
 import java.util.*
 /* -------------------------------------------------- */
@@ -338,7 +331,7 @@ fun SelectOptionsContent(
                                 Icon(
                                     imageVector = Icons.Default.Add,
                                     contentDescription = null,
-                                    tint = GoldenYellow,
+                                    tint = DarkBlue,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(Modifier.height(8.dp))
@@ -403,7 +396,7 @@ fun SelectOptionsContent(
                                         }
                                     },
                                 shape = RoundedCornerShape(8.dp),
-                                color = SoftBlue
+                                color = DarkBlue
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
@@ -429,7 +422,7 @@ fun SelectOptionsContent(
                                     .size(40.dp)
                                     .clickable { onCopiesChange(uiState.copies + 1) },
                                 shape = RoundedCornerShape(8.dp),
-                                color = SoftBlue
+                                color = DarkBlue
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
@@ -472,7 +465,8 @@ fun SelectOptionsContent(
                                     )
                                     .border(
                                         width = if (isSelected) 2.dp else 1.5.dp,
-                                        color = if (isSelected) SoftBlue else AlmostBlack.copy(alpha = 0.6f),
+                                        color = if (isSelected) DarkBlue
+                                        else AlmostBlack.copy(alpha = 0.6f),
                                         shape = RoundedCornerShape(12.dp)
                                     )
                                     .clickable { onColorModeSelect(colorMode) }
@@ -490,7 +484,7 @@ fun SelectOptionsContent(
                                             Icon(
                                                 imageVector = Icons.Default.Check,
                                                 contentDescription = "Selected",
-                                                tint = SoftBlue,
+                                                tint = Blue,
                                                 modifier = Modifier.size(22.dp)
                                             )
                                         } else {
@@ -509,7 +503,7 @@ fun SelectOptionsContent(
                                             text = colorMode.name,
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Blue else AlmostBlack,
+                                            color = if (isSelected) DarkBlue else AlmostBlack,
                                             textAlign = TextAlign.Center,
                                             maxLines = 1
                                         )
@@ -518,7 +512,7 @@ fun SelectOptionsContent(
                                         Text(
                                             text = "₹${colorMode.extraPrice}/page",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = if (isSelected) CoralRed else MediumGray
+                                            color = if (isSelected) Color(0xFF2E7D32) else MediumGray
                                         )
                                     }
 
@@ -603,7 +597,8 @@ fun SelectOptionsContent(
                                     )
                                     .border(
                                         width = if (isSelected) 2.dp else 1.5.dp,
-                                        color = if (isSelected) SoftBlue else AlmostBlack.copy(alpha = 0.6f),
+                                        color = if (isSelected) DarkBlue
+                                        else AlmostBlack.copy(alpha = 0.6f),
                                         shape = RoundedCornerShape(12.dp)
                                     )
                                     .clickable { onOrientationChange(orientation) }
@@ -614,11 +609,21 @@ fun SelectOptionsContent(
                                     text = orientation.displayName,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) SoftBlue else AlmostBlack
+                                    color = if (isSelected) DarkBlue
+                                    else AlmostBlack
                                 )
                             }
                         }
                     }
+
+                    //time
+                    Spacer(Modifier.height(24.dp))
+
+                    PickupDateTimeSection(
+                        value = uiState.pickupAt,
+                        onValueChange = onPickupAtChange
+                    )
+                    //urgent Order
                     Spacer(Modifier.height(24.dp))
 
                     // Urgent Order Toggle
@@ -680,8 +685,6 @@ fun SelectOptionsContent(
                             )
                         }
                     }
-
-
                     //Description
 
                     Spacer(Modifier.height(24.dp))
@@ -690,15 +693,6 @@ fun SelectOptionsContent(
                         value = uiState.description,
                         onValueChange = onDescriptionChange
                     )
-                    Spacer(Modifier.height(24.dp))
-
-                    PickupDateTimeSection(
-                        value = uiState.pickupAt,
-                        onValueChange = onPickupAtChange
-                    )
-
-
-
                 }
             }
 
@@ -740,7 +734,7 @@ fun SelectOptionsContent(
                         onClick = onSubmit,
                         enabled =
                             uiState.selectedFile != null &&
-                                    uiState.selectedPaperType != null && uiState.selectedFinishType != null,
+                                    uiState.selectedPaperType != null && uiState.selectedFinishType != null && uiState.pickupAt != null,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = LimeGreen,
                             disabledContainerColor = MediumGray.copy(alpha = 0.3f)
@@ -860,7 +854,7 @@ private fun <T> DropdownSection(
                     )
                     .border(
                         width = if (isSelected) 2.dp else 1.5.dp,
-                        color = if (isSelected) SoftBlue else AlmostBlack.copy(alpha = 0.6f),
+                        color = if (isSelected) DarkBlue else AlmostBlack.copy(alpha = 0.6f),
                         shape = RoundedCornerShape(12.dp)
                     )
                     .clickable { expanded = true }
@@ -961,7 +955,7 @@ fun startRazorpayPayment(
     try {
         val checkout = Checkout()
 
-        checkout.setKeyID("Api here")
+        checkout.setKeyID("API HERE")
 
         val options = JSONObject()
         options.put("name", "Lovely Prints")
@@ -1006,7 +1000,7 @@ fun DescriptionSection(
     Column {
 
         Text(
-            text = "Order Notes",
+            text = "Instruction",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = AlmostBlack
@@ -1131,11 +1125,8 @@ fun PickupDateTimeSection(
     value: String?,
     onValueChange: (String) -> Unit
 ) {
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
     var selectedDateMillis by remember { mutableStateOf<Long?>(null) }
-    var selectedHour by remember { mutableStateOf(9) }
-    var selectedMinute by remember { mutableStateOf(0) }
+    var showTimePicker by remember { mutableStateOf(false) }
 
     Column {
         Text(
@@ -1147,6 +1138,62 @@ fun PickupDateTimeSection(
 
         Spacer(Modifier.height(12.dp))
 
+        // Date Selection Buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            val today = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+
+            val tomorrow = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_MONTH, 1)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+
+            // Today Button
+            Button(
+                onClick = {
+                    selectedDateMillis = today
+                    showTimePicker = true
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedDateMillis == today && value != null) DarkBlue else OffWhite,
+                    contentColor = if (selectedDateMillis == today && value != null) Color.White else AlmostBlack
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Today", fontWeight = FontWeight.SemiBold)
+            }
+
+            // Tomorrow Button
+            Button(
+                onClick = {
+                    selectedDateMillis = tomorrow
+                    showTimePicker = true
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedDateMillis == tomorrow && value != null) DarkBlue else OffWhite,
+                    contentColor = if (selectedDateMillis == tomorrow && value != null) Color.White else AlmostBlack
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Tomorrow", fontWeight = FontWeight.SemiBold)
+            }
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // Display selected date & time
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1156,10 +1203,12 @@ fun PickupDateTimeSection(
                 )
                 .border(
                     width = if (value != null) 2.dp else 1.5.dp,
-                    color = if (value != null) SoftBlue else AlmostBlack.copy(alpha = 0.6f),
+                    color = if (value != null) DarkBlue else AlmostBlack.copy(alpha = 0.6f),
                     shape = RoundedCornerShape(12.dp)
                 )
-                .clickable { showDatePicker = true }
+                .clickable(enabled = selectedDateMillis != null) {
+                    if (selectedDateMillis != null) showTimePicker = true
+                }
                 .padding(16.dp)
         ) {
             Row(
@@ -1167,31 +1216,20 @@ fun PickupDateTimeSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (value != null) {
-                            formatPickupDateTime(value)
-                        } else {
-                            "Select pickup date & time (optional)"
-                        },
-                        color = if (value != null) AlmostBlack else MediumGray.copy(alpha = 0.5f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (value != null) FontWeight.SemiBold else FontWeight.Normal
-                    )
-
-                    if (value != null) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "Tap to change",
-                            color = SoftBlue,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
+                Text(
+                    text = if (value != null) {
+                        formatPickupDateTime(value)
+                    } else {
+                        "Select date above, then choose time"
+                    },
+                    color = if (value != null) AlmostBlack else MediumGray.copy(alpha = 0.5f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (value != null) FontWeight.SemiBold else FontWeight.Normal
+                )
 
                 Icon(
                     imageVector = Icons.Default.CalendarToday,
-                    contentDescription = "Select date & time",
+                    contentDescription = "Select time",
                     tint = if (value != null) SoftBlue else MediumGray,
                     modifier = Modifier.size(24.dp)
                 )
@@ -1201,91 +1239,99 @@ fun PickupDateTimeSection(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "When would you like to pick up your order?",
+            text = "Note: Pickup available between 9 AM and 7 PM",
             style = MaterialTheme.typography.bodySmall,
             color = MediumGray
         )
     }
 
-    // Date Picker Dialog
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = selectedDateMillis ?: System.currentTimeMillis()
-        )
-
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        selectedDateMillis = datePickerState.selectedDateMillis
-                        showDatePicker = false
-                        showTimePicker = true
-                    }
-                ) {
-                    Text("Next", color = SoftBlue)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel", color = MediumGray)
-                }
-            },
-            colors = DatePickerDefaults.colors(
-                containerColor = Cream
-            )
-        ) {
-            DatePicker(
-                state = datePickerState,
-                colors = DatePickerDefaults.colors(
-                    selectedDayContainerColor = SoftBlue,
-                    todayContentColor = SoftBlue,
-                    todayDateBorderColor = SoftBlue
-                )
-            )
-        }
-    }
-
     // Time Picker Dialog
-    if (showTimePicker) {
+    if (showTimePicker && selectedDateMillis != null) {
         val timePickerState = rememberTimePickerState(
-            initialHour = selectedHour,
-            initialMinute = selectedMinute,
+            initialHour = 9,
+            initialMinute = 0,
             is24Hour = false
         )
+
+        // Get current time
+        val now = Calendar.getInstance()
+        val currentHour = now.get(Calendar.HOUR_OF_DAY)
+        val currentMinute = now.get(Calendar.MINUTE)
+
+        // Check if selected date is today
+        val todayStart = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        val isToday = selectedDateMillis == todayStart
+
+        // Validate time
+        val isValidTime = when {
+            // Time must be between 9 AM and 7 PM
+            timePickerState.hour < 9 || timePickerState.hour >= 19 -> false
+
+            // If today, time must be in the future
+            isToday -> {
+                if (timePickerState.hour > currentHour) {
+                    true
+                } else if (timePickerState.hour == currentHour) {
+                    timePickerState.minute > currentMinute
+                } else {
+                    false
+                }
+            }
+
+            // If tomorrow, any time between 9 AM - 7 PM is valid
+            else -> true
+        }
 
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        selectedHour = timePickerState.hour
-                        selectedMinute = timePickerState.minute
+                        val hour = timePickerState.hour
+                        val minute = timePickerState.minute
 
-                        // Combine date and time into ISO format
-                        selectedDateMillis?.let { dateMillis ->
-                            val calendar = Calendar.getInstance().apply {
-                                timeInMillis = dateMillis
-                                set(Calendar.HOUR_OF_DAY, selectedHour)
-                                set(Calendar.MINUTE, selectedMinute)
-                                set(Calendar.SECOND, 0)
-                                set(Calendar.MILLISECOND, 0)
-                            }
-
-                            val isoFormat = SimpleDateFormat(
-                                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                                Locale.getDefault()
-                            ).apply {
-                                timeZone = TimeZone.getTimeZone("UTC")
-                            }
-
-                            onValueChange(isoFormat.format(calendar.time))
+                        // Validate time between 9 AM and 7 PM
+                        if (hour < 9 || hour >= 19) {
+                            return@TextButton
                         }
 
+                        // Validate not in the past if today
+                        if (isToday) {
+                            if (hour < currentHour || (hour == currentHour && minute <= currentMinute)) {
+                                return@TextButton
+                            }
+                        }
+
+                        // Combine date and time into ISO format
+                        val calendar = Calendar.getInstance().apply {
+                            timeInMillis = selectedDateMillis!!
+                            set(Calendar.HOUR_OF_DAY, hour)
+                            set(Calendar.MINUTE, minute)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+
+                        val isoFormat = SimpleDateFormat(
+                            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                            Locale.getDefault()
+                        ).apply {
+                            timeZone = TimeZone.getTimeZone("UTC")
+                        }
+
+                        onValueChange(isoFormat.format(calendar.time))
                         showTimePicker = false
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = if (isValidTime) DarkBlue else SoftBlue
+                    )
                 ) {
-                    Text("Confirm", color = SoftBlue)
+                    Text("Confirm", fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -1293,16 +1339,35 @@ fun PickupDateTimeSection(
                     Text("Cancel", color = MediumGray)
                 }
             },
-            text = {
-                TimePicker(
-                    state = timePickerState,
-                    colors = TimePickerDefaults.colors(
-                        clockDialColor = OffWhite,
-                        selectorColor = SoftBlue,
-                        clockDialSelectedContentColor = Color.White,
-                        clockDialUnselectedContentColor = AlmostBlack
-                    )
+            title = {
+                Text(
+                    text = "Select Pickup Time",
+                    fontWeight = FontWeight.Bold,
+                    color = AlmostBlack
                 )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = if (isToday) {
+                            "Available: 9 AM - 7 PM (must be after current time)"
+                        } else {
+                            "Available: 9 AM - 7 PM"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MediumGray
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    TimePicker(
+                        state = timePickerState,
+                        colors = TimePickerDefaults.colors(
+                            clockDialColor = OffWhite,
+                            selectorColor = SoftBlue,
+                            clockDialSelectedContentColor = Color.White,
+                            clockDialUnselectedContentColor = AlmostBlack
+                        )
+                    )
+                }
             },
             containerColor = Cream,
             shape = RoundedCornerShape(16.dp)

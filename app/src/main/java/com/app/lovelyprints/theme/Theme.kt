@@ -6,11 +6,14 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+
+
 @Composable
 fun LovelyPrintsTheme(
     darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
+
 //    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     MaterialTheme(
         colorScheme = colorScheme,
