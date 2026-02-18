@@ -9,7 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -24,14 +23,42 @@ import com.app.lovelyprints.theme.Cream
 import com.razorpay.Checkout
 import com.razorpay.PaymentData
 import com.razorpay.PaymentResultWithDataListener
+import com.google.firebase.messaging.FirebaseMessaging
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+
 
 class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
+    
+    private val notificationPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            Log.d("NOTIFICATION", "Permission granted = $isGranted")
+        }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         Checkout.preload(applicationContext)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.d("FCM", "Fetching FCM failed")
+                    return@addOnCompleteListener
+                }
+
+                val token = task.result
+                Log.d("FCM", "Manual token fetch → $token")
+            }
+
+
 
         setContent {
 
@@ -150,3 +177,4 @@ fun FixSystemBars(enabled: Boolean) {
         }
     }
 }
+

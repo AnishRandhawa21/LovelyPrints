@@ -63,4 +63,9 @@ class TokenManager(private val context: Context) {
     suspend fun clearAll() {
         context.dataStore.edit { prefs -> prefs.clear() }
     }
+
+
+    fun getUserIdBlocking(): String? = runBlocking {
+        context.dataStore.data.first()[USER_ID_KEY]
+    }
 }

@@ -65,6 +65,7 @@ import com.app.lovelyprints.R
 import com.app.lovelyprints.theme.CoralRed
 import com.app.lovelyprints.theme.DarkGreen
 import com.app.lovelyprints.theme.SoftBlue
+import com.app.lovelyprints.ui.order.formatPickupDateTime
 
 
 /* -------------------------------------------------------------------------- */
@@ -504,6 +505,33 @@ fun ExpandableOrderCard(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = AlmostBlack // CHANGED: from Color(0xFFFFFFFF) to AlmostBlack
                             )
+
+                            Spacer(modifier = Modifier.height(2.dp))
+
+                            order.pickupAt?.let { pickupAt ->
+                                Spacer(Modifier.height(8.dp))
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Pickup at:",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MediumGray
+                                    )
+
+                                    Spacer(Modifier.width(6.dp))
+
+                                    Text(
+                                        text = formatPickupDateTime(pickupAt),
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = FontWeight.SemiBold
+                                        ),
+                                        color = AlmostBlack
+                                    )
+                                }
+                            }
+
 
                             Spacer(modifier = Modifier.height(2.dp))
 

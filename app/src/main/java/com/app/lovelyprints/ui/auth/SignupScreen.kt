@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import com.app.lovelyprints.theme.Blue
 import com.app.lovelyprints.theme.SoftBlue
 import com.app.lovelyprints.theme.White
+import com.app.lovelyprints.utils.openEmailApp
 
 @Composable
 fun SignupScreen(
@@ -62,16 +63,12 @@ fun SignupScreen(
     var password by remember { mutableStateOf("") }
     var passwordTouched by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
+    var showVerifyDialog by remember { mutableStateOf(false) }
     val isPasswordValid = isValidPassword(password)
 
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            Toast.makeText(
-                context,
-                "Verify your account via email before logging in",
-                Toast.LENGTH_LONG
-            ).show()
-            onSignupSuccess()
+        if (uiState.isSuccess && !showVerifyDialog) {
+            showVerifyDialog = true
         }
     }
 
@@ -386,7 +383,61 @@ fun SignupScreen(
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
+    if (showVerifyDialog) {
+        AlertDialog(
+            onDismissRequest = {}, // force user decision
+            containerColor = Cream,
+            title = {
+                Text(
+                    text = "Verify your email",
+                    color = AlmostBlack,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "We’ve sent a verification link to:\n$email\n\n" +
+                            "Please check your inbox (and spam) to continue.",
+                    color = AlmostBlack,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        openEmailApp(context)
+                        showVerifyDialog = false
+                        onSignupSuccess()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Blue,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Open email app")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showVerifyDialog = false
+                        onSignupSuccess()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = AlmostBlack
+                    )
+                ) {
+                    Text("Later")
+                }
+            }
+        )
+    }
+
+
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

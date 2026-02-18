@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 import com.app.lovelyprints.data.model.Organisation
+import kotlinx.coroutines.tasks.await
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -25,7 +26,8 @@ data class AuthUiState(
 
 class AuthViewModel(
     private val authRepository: AuthRepository,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val notificationApi: com.app.lovelyprints.data.api.NotificationApi
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -181,5 +183,33 @@ class AuthViewModel(
 
     fun clearError() {
         _uiState.value = _uiState.value.copy(error = null)
+    }
+
+    private fun registerFcmToken() {
+        viewModelScope.launch {
+            try {
+                val userId = tokenManager.getUserIdBlocking()
+                if (userId.isNullOrBlank()) return@launch
+
+                val fcmToken =
+                    com.google.firebase.messaging.FirebaseMessaging
+                        .getInstance()
+                        .token
+                        .await()
+
+                notificationApi.registerDevice(
+                    com.app.lovelyprints.data.api.RegisterDeviceRequest(
+                        userId = userId,
+                        token = fcmToken,
+                        platform = "android"
+                    )
+                )
+
+                Log.d("FCM", "Token registered to backend")
+
+            } catch (e: Exception) {
+                Log.e("FCM", "Failed to register token", e)
+            }
+        }
     }
 }

@@ -150,7 +150,7 @@ fun CreateOrderScreen(
             )
 
         OrderStep.UPLOADING ->
-            LoadingScreen("Uploading document...")
+            UploadingFileScreen()
 
         OrderStep.CREATING_ORDER ->
             LoadingScreen("Creating order...")
@@ -233,7 +233,6 @@ fun CreateOrderScreen(
                     razorpaySignature = it.signature
                 )
             }
-
             kotlinx.coroutines.delay(500)
         }
     }
@@ -744,7 +743,7 @@ fun SelectOptionsContent(
                             .height(56.dp)
                             .width(180.dp)
                     ) {
-                        Text(
+                        Text(   
                             text = "Proceed To Pay",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
@@ -941,6 +940,40 @@ private fun LoadingScreen(text: String) {
         }
     }
 }
+@Composable
+private fun UploadingFileScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Cream),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Indeterminate upload bar
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .width(220.dp)
+                    .height(6.dp),
+                color = GoldenYellow,
+                trackColor = MediumGray.copy(alpha = 0.2f)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Uploading document…",
+                color = MediumGray,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
 /* -------------------------------------------------- */
 /* ---------------- RAZORPAY ------------------------- */
 /* -------------------------------------------------- */
@@ -1377,14 +1410,26 @@ fun PickupDateTimeSection(
 
 // Helper function
 fun formatPickupDateTime(isoString: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
-        val date = inputFormat.parse(isoString)
+    val possibleFormats = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "yyyy-MM-dd'T'HH:mm:ss"
+    )
 
-        val outputFormat = SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault())
-        outputFormat.format(date ?: Date())
-    } catch (e: Exception) {
-        "Invalid date"
-    }
+    val date = possibleFormats.firstNotNullOfOrNull { pattern ->
+        try {
+            SimpleDateFormat(pattern, Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.parse(isoString)
+        } catch (_: Exception) {
+            null
+        }
+    } ?: return "Invalid date"
+
+    return SimpleDateFormat(
+        "MMM dd, yyyy 'at' hh:mm a",
+        Locale.getDefault()
+    ).format(date)
 }

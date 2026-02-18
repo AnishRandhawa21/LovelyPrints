@@ -4,6 +4,7 @@ import android.content.Context
 import com.app.lovelyprints.core.auth.TokenManager
 import com.app.lovelyprints.core.network.ApiClient
 import com.app.lovelyprints.data.api.AuthApi
+import com.app.lovelyprints.data.api.NotificationApi
 import com.app.lovelyprints.data.api.OrderApi
 import com.app.lovelyprints.data.api.ShopApi
 import com.app.lovelyprints.data.repository.AuthRepository
@@ -16,10 +17,13 @@ class AppContainer(context: Context, onUnauthorized: () -> Unit) {
 
     private val apiClient = ApiClient(tokenManager, onUnauthorized)
 
+    // APIs
     private val authApi: AuthApi = apiClient.createService()
     private val shopApi: ShopApi = apiClient.createService()
     private val orderApi: OrderApi = apiClient.createService()
+    val notificationApi: NotificationApi = apiClient.createService()  // ✅ FIXED
 
+    // Repositories
     val authRepository = AuthRepository(authApi, tokenManager)
     val shopRepository = ShopRepository(shopApi)
     val orderRepository = OrderRepository(orderApi)

@@ -41,6 +41,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.app.lovelyprints.firebase.registerFcmToken
 import com.app.lovelyprints.theme.AlmostBlack
 import com.app.lovelyprints.theme.Bebasneue
 import com.app.lovelyprints.theme.CoralRed
@@ -72,8 +73,17 @@ import com.app.lovelyprints.theme.White
 @Composable
 fun HomeScreen(
     viewModelFactory: HomeViewModelFactory,
+    tokenManager: com.app.lovelyprints.core.auth.TokenManager,
+    notificationApi: com.app.lovelyprints.data.api.NotificationApi,
     onShopClick: (String) -> Unit
 ) {
+
+    LaunchedEffect(Unit) {
+        val userId = tokenManager.getUserIdBlocking()
+        if (!userId.isNullOrBlank()) {
+            registerFcmToken(userId, notificationApi)
+        }
+    }
     val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
     val uiState by viewModel.uiState.collectAsState()
     val pullToRefreshState = rememberPullToRefreshState()
@@ -98,6 +108,7 @@ fun HomeScreen(
 
         result.sortedBy { !it.isActive }
     }
+
     val isSearching = searchQuery.isNotBlank()
     val noSearchResults = isSearching && filteredShops.isEmpty()
 

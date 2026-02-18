@@ -96,8 +96,7 @@ fun AppNavHost(
         ) {
             LoginScreen(
                 viewModelFactory = AuthViewModelFactory(
-                    appContainer.authRepository,
-                    appContainer.tokenManager
+                    appContainer
                 ),
                 onLoginSuccess = {
                     navController.navigate(Routes.Home.route) {
@@ -121,8 +120,7 @@ fun AppNavHost(
         ) {
             SignupScreen(
                 viewModelFactory = AuthViewModelFactory(
-                    appContainer.authRepository,
-                    appContainer.tokenManager
+                    appContainer
                 ),
                 onSignupSuccess = {
                     navController.navigate(Routes.Login.route) {
@@ -149,6 +147,8 @@ fun AppNavHost(
         ) {
             HomeScreen(
                 viewModelFactory = HomeViewModelFactory(appContainer.shopRepository),
+                tokenManager = appContainer.tokenManager,
+                notificationApi = appContainer.notificationApi,
                 onShopClick = { shopId ->
                     navController.navigate(Routes.CreateOrder.createRoute(shopId))
                 }

@@ -26,7 +26,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.app.lovelyprints.ui.navigation.Routes
 import com.app.lovelyprints.theme.AlmostBlack
 import com.app.lovelyprints.theme.Cream
-import com.app.lovelyprints.theme.LimeGreen
 import com.app.lovelyprints.theme.SoftPink
 
 // ------------------------------------------------------------
@@ -39,7 +38,7 @@ data class BottomNavItem(
 )
 
 // ------------------------------------------------------------
-// Main Screen with Animated Pink Circle
+// Main Screen
 // ------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,31 +56,31 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Calculate selected index for animation
-    val selectedIndex = bottomNavItems.indexOfFirst { it.route == currentRoute }
+    val selectedIndex =
+        bottomNavItems.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
 
-    // Store container width
     var containerWidth by remember { mutableStateOf(0) }
     val density = LocalDensity.current
 
-    // Calculate circle offset based on selected index and container width
+    // ✅ ORIGINAL ANIMATION (RESTORED)
     val circleOffset by animateDpAsState(
         targetValue = with(density) {
             when (selectedIndex) {
-                0 -> 40.dp // Left position (Home)
-                1 -> (containerWidth / 2f).toDp() - 26.dp // Center position (Orders)
-                2 -> containerWidth.toDp() - 92.dp // Right position (Profile)
+                0 -> 40.dp
+                1 -> (containerWidth / 2f).toDp() - 26.dp
+                2 -> containerWidth.toDp() - 92.dp
                 else -> (containerWidth / 2f).toDp() - 26.dp
             }
         },
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy, // Smooth bouncy effect
-            stiffness = Spring.StiffnessLow // Slower, more fluid motion
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
         ),
         label = "circleOffset"
     )
 
     Scaffold(
+        contentWindowInsets = WindowInsets.statusBars,
         containerColor = Cream,
         contentColor = AlmostBlack,
 
@@ -90,16 +89,16 @@ fun MainScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    // Rounded navbar container
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(70.dp)
-                            .onGloballyPositioned { coordinates ->
-                                containerWidth = coordinates.size.width
+                            .onGloballyPositioned {
+                                containerWidth = it.size.width
                             },
                         shape = RoundedCornerShape(35.dp),
                         color = AlmostBlack,
@@ -107,20 +106,18 @@ fun MainScreen(
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
 
-                            // Pink circle indicator that moves
                             if (containerWidth > 0) {
                                 Box(
                                     modifier = Modifier
                                         .size(52.dp)
                                         .offset(x = circleOffset, y = 9.dp)
                                         .background(
-                                            color = SoftPink, // Pink color
+                                            color = SoftPink,
                                             shape = CircleShape
                                         )
                                 )
                             }
 
-                            // Nav items row
                             Row(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -128,7 +125,7 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                bottomNavItems.forEachIndexed { index, item ->
+                                bottomNavItems.forEach { item ->
                                     val selected = currentRoute == item.route
 
                                     IconButton(
@@ -164,10 +161,7 @@ fun MainScreen(
         }
     ) { paddingValues ->
         content(
-            Modifier
-                .padding(paddingValues)
-                .consumeWindowInsets(paddingValues)
+            Modifier.padding(paddingValues)
         )
     }
-
 }

@@ -2,7 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
-//    id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 
 }
 
@@ -44,7 +44,6 @@ android {
 }
 
 dependencies {
-
     // -------------------------
     // UNIT TESTS
     // -------------------------
@@ -125,11 +124,13 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    // ===============================
-    // FIREBASE (FCM)
-    // ===============================
-//    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-//    implementation("com.google.firebase:firebase-messaging-ktx")
+// ===============================
+// FIREBASE (FCM)
+// ===============================
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    implementation("com.google.firebase:firebase-messaging")
+
+
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
