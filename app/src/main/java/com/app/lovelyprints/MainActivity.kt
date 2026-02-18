@@ -45,6 +45,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        requestNotificationPermissionFirstLaunch()
+
         Checkout.preload(applicationContext)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         FirebaseMessaging.getInstance().token
@@ -90,16 +92,42 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     // ✅ pure UI overlay
                     if (showTerms) {
                         TermsScreen(
-                            onAccept = {
-                                showTerms = false
-                            }
+                            onAccept = { showTerms = false }
                         )
                     }
                 }
             }
+
         }
     }
+    private fun requestNotificationPermissionFirstLaunch() {
 
+        // Only Android 13+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
+        val alreadyAsked =
+            prefs.getBoolean("notification_permission_asked", false)
+
+        if (alreadyAsked) return
+
+        // Mark as asked immediately (important!)
+        prefs.edit()
+            .putBoolean("notification_permission_asked", true)
+            .apply()
+
+        val granted = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!granted) {
+            notificationPermissionLauncher.launch(
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+    }
 
     // --------------------------------------------------
     // Razorpay callbacks
