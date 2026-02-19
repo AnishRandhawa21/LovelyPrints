@@ -694,13 +694,19 @@ fun SelectOptionsContent(
                     )
                 }
             }
+//remove if needed
+//            Spacer(Modifier.height(100.dp))
+            Spacer(
+                modifier = Modifier
+                    .height(100.dp)
+                    .navigationBarsPadding()
+            )
 
-            Spacer(Modifier.height(100.dp))
         }
 
         // Bottom Bar
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().navigationBarsPadding(),
             verticalArrangement = Arrangement.Bottom
         ) {
             Surface(

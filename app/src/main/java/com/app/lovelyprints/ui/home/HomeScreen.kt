@@ -66,6 +66,8 @@ import com.app.lovelyprints.theme.Thunder
 import com.app.lovelyprints.theme.White
 
 
+
+
 // --------------------------------------------------
 // 🏠 HOME SCREEN
 // --------------------------------------------------
@@ -189,19 +191,35 @@ fun HomeScreen(
                 else -> {
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(
-                            bottom = 90.dp // 👈 space for floating bottom nav
-                        )
+                        contentPadding = PaddingValues(bottom = 90.dp)
                     ) {
-                        itemsIndexed(filteredShops) { index, shop ->
-                            Pressable(
-                                enabled = shop.isActive,
-                                onClick = { onShopClick(shop.id) }
+                        itemsIndexed(filteredShops) { _, shop ->
+
+                            val isEnabled = shop.isActive
+
+                            val isOpenNow = remember(
+                                shop.openTime,
+                                shop.closeTime
                             ) {
-                                ShopCard(shop = shop)
+                                ShopTimeUtils.isShopOpen(
+                                    shop.openTime,
+                                    shop.closeTime
+                                )
+                            }
+                            Pressable(
+                                enabled = isEnabled && isOpenNow,
+                                onClick = { onShopClick(shop.id) }
+                            )
+                            {
+                                ShopCard(
+                                    shop = shop,
+                                    isOpen = isOpenNow,
+                                    isEnabled = isEnabled
+                                )
                             }
                         }
                     }
+
                 }
             }
         }
@@ -283,53 +301,53 @@ fun FancySearchBar(
 // ✨ SHOP CARD (NO ANIMATION)
 // --------------------------------------------------
 @Composable
-fun ShopCard(shop: Shop) {
-    val isActive = shop.isActive
+fun ShopCard(
+    shop: Shop,
+    isOpen: Boolean,
+    isEnabled: Boolean
+)
+ {
 
-    // Static gradient - no animation
-    val cardBrush = if (isActive) {
-        Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF9CCC65),
-                Color(0xFF689F38)
+     val showOpenState = isEnabled && isOpen
+     val statusText = when {
+         !isEnabled -> "SHOP DISABLED"
+         !isOpen -> "CLOSED • Opens at ${formatTime(shop.openTime)}"
+         else -> "OPEN • Closes at ${formatTime(shop.closeTime)}"
+     }
 
-            )
-        )
-    } else {
-        Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFE0E0E0),
-                Color(0xFFBDBDBD)
-            )
-        )
-    }
+     // Background gradient
+     val cardBrush = if (showOpenState) {
+         Brush.linearGradient(
+             listOf(Color(0xFF9CCC65), Color(0xFF689F38))
+         )
+     } else {
+         Brush.linearGradient(
+             listOf(Color(0xFFE0E0E0), Color(0xFFBDBDBD))
+         )
+     }
 
-    Card(
+     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(140.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isActive) 1.dp else 1.dp
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(20.dp))
                 .background(cardBrush)
                 .border(
-                    1.5.dp,
-                    if (isActive)
+                    width = 1.5.dp,
+                    color = if (showOpenState)
                         Color.White.copy(alpha = 0.5f)
                     else
                         Color.White.copy(alpha = 0.3f),
-                    RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp)
                 )
         ) {
-
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -337,14 +355,17 @@ fun ShopCard(shop: Shop) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                Column(Modifier.weight(1f)) {
+                // ---------------- LEFT CONTENT ----------------
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
 
                     Text(
                         text = shop.shopName,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        color = if (isActive) Color.White else Color(0xFF757575)
+                        color = if (showOpenState) Color.White else Color(0xFF757575)
                     )
 
                     Spacer(Modifier.height(6.dp))
@@ -352,24 +373,36 @@ fun ShopCard(shop: Shop) {
                     Text(
                         text = "Block: ${shop.block}",
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = if (isActive)
+                            fontWeight = FontWeight.Medium,
+                            color = if (showOpenState)
                                 Color.White.copy(alpha = 0.95f)
                             else
                                 Color(0xFF9E9E9E),
-                            fontWeight = FontWeight.Medium,
-                            shadow = if (isActive) {
+                            shadow = if (showOpenState) {
                                 Shadow(
-                                    color = AlmostBlack.copy(alpha = 0.3f),
+                                    color = Color.Black.copy(alpha = 0.3f),
                                     offset = Offset(1f, 1f),
                                     blurRadius = 3f
                                 )
                             } else null
                         )
                     )
+                    Spacer(Modifier.height(6.dp))
+
+                    if (showOpenState)
+                    Text(
+                        text = "Close at ${formatTime(shop.closeTime)}",
+                        color = White,
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 12.sp
+                    )
                 }
 
-                if (shop.isActive) {
+                // ---------------- RIGHT CONTENT ----------------
+                if (showOpenState) {
 
+                    // OPEN STATE
                     Box(
                         modifier = Modifier
                             .size(90.dp)
@@ -379,15 +412,15 @@ fun ShopCard(shop: Shop) {
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Storefront,
-                            contentDescription = "Shop",
-                            tint = White,
-                            modifier = Modifier.size(65.dp)
+                            contentDescription = "Shop Open",
+                            tint = Color.White,
+                            modifier = Modifier.size(64.dp)
                         )
                     }
 
-
                 } else {
 
+                    // CLOSED STATE
                     Column(
                         modifier = Modifier
                             .size(96.dp)
@@ -400,7 +433,6 @@ fun ShopCard(shop: Shop) {
 
                         Text(
                             text = "CLOSED",
-                            modifier = Modifier.fillMaxWidth(),
                             color = Color(0xFF616161),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold
@@ -408,22 +440,44 @@ fun ShopCard(shop: Shop) {
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(Modifier.height(2.dp))
+                        Spacer(Modifier.height(4.dp))
 
                         Text(
-                            text = "Opens at 9:00 AM",
-                            modifier = Modifier.fillMaxWidth(),
+                            text = "Opens at ${formatTime(shop.openTime)}",
                             color = Color(0xFF757575),
                             fontSize = 10.sp,
-                            lineHeight = 12.sp,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            lineHeight = 12.sp
                         )
+
                     }
                 }
             }
         }
     }
 }
+
+private fun formatTime(time: String): String {
+    // expects "HH:mm" e.g. "09:00", "18:30"
+    return try {
+        val parts = time.split(":")
+        val hour24 = parts[0].toInt()
+        val minute = parts[1]
+
+        val hour12 = when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+
+        val amPm = if (hour24 < 12) "AM" else "PM"
+
+        "$hour12:$minute $amPm"
+    } catch (e: Exception) {
+        time // fallback if backend sends garbage
+    }
+}
+
 
 
 // --------------------------------------------------

@@ -39,4 +39,11 @@ class HomeViewModel(private val shopRepository: ShopRepository) : ViewModel() {
             }
         }
     }
+    fun isShopOpen(shop: Shop): Boolean {
+        return ShopTimeUtils.isShopOpen(
+            shop.openTime,
+            shop.closeTime
+        )
+    }
+
 }

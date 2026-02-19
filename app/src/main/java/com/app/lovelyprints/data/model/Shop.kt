@@ -6,7 +6,6 @@ import com.google.gson.annotations.SerializedName
    SHOP
 ----------------------------- */
 data class Shop(
-
     @SerializedName("id")
     val id: String,
 
@@ -17,8 +16,15 @@ data class Shop(
     val block: String,
 
     @SerializedName("is_active")
-    val isActive: Boolean
+    val isActive: Boolean,
+
+    @SerializedName("open_time")
+    val openTime: String,
+
+    @SerializedName("close_time")
+    val closeTime: String
 )
+
 
 /* -----------------------------
    PRINT OPTIONS RESPONSE

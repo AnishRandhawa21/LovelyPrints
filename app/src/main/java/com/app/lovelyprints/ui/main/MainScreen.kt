@@ -100,9 +100,10 @@ fun MainScreen(
                             .onGloballyPositioned {
                                 containerWidth = it.size.width
                             },
+                        tonalElevation = 0.dp,      // no color tint
+                        shadowElevation = 8.dp,
                         shape = RoundedCornerShape(35.dp),
                         color = AlmostBlack,
-                        shadowElevation = 12.dp
                     ) {
                         Box(modifier = Modifier.fillMaxSize()) {
 

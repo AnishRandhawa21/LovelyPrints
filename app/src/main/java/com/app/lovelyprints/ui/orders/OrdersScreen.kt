@@ -491,59 +491,45 @@ fun ExpandableOrderCard(
             {
                 Column {
 
-                    if(!isHistory) {
+                    // ================= HISTORY DETAILS + BILL =================
+
+                    if (isHistory) {
+
                         Spacer(Modifier.height(12.dp))
-                        HorizontalDivider(color = MediumGray.copy(alpha = 0.3f)) // CHANGED: from Color(0xFF878787) to MediumGray with transparency
+                        HorizontalDivider(color = MediumGray.copy(alpha = 0.3f))
                         Spacer(Modifier.height(12.dp))
 
-                        //Description
+                        // ---------- PICKUP TIME ----------
+                        order.pickupAt?.let { pickupAt ->
 
-                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Pickup at:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MediumGray
+                                )
 
-                            Text(
-                                text = "Description",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = AlmostBlack // CHANGED: from Color(0xFFFFFFFF) to AlmostBlack
-                            )
+                                Spacer(Modifier.width(6.dp))
 
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            order.pickupAt?.let { pickupAt ->
-                                Spacer(Modifier.height(8.dp))
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Pickup at:",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MediumGray
-                                    )
-
-                                    Spacer(Modifier.width(6.dp))
-
-                                    Text(
-                                        text = formatPickupDateTime(pickupAt),
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontWeight = FontWeight.SemiBold
-                                        ),
-                                        color = AlmostBlack
-                                    )
-                                }
+                                Text(
+                                    text = formatPickupDateTime(pickupAt),
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
+                                    color = AlmostBlack
+                                )
                             }
 
-
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            Text(
-                                text = order.notes ?: "No notes",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MediumGray, // CHANGED: from Color(0xFFB0B0B0) to MediumGray
-                                lineHeight = 18.sp
-                            )
+                            Spacer(Modifier.height(12.dp))
+                            HorizontalDivider(color = MediumGray.copy(alpha = 0.3f))
+                            Spacer(Modifier.height(12.dp))
                         }
-                    }
 
+                        // ---------- BILL ----------
+                        OrderBillSection(order)
+                    }
 
                     Spacer(Modifier.height(10.dp))
                     if (!isHistory) {
@@ -619,17 +605,6 @@ fun ExpandableOrderCard(
                             )
                         }
                     }
-                    // ================= HISTORY BILL =================
-
-                    if (isHistory) {
-
-                        Spacer(Modifier.height(12.dp))
-                        HorizontalDivider(color = MediumGray.copy(alpha = 0.3f)) // CHANGED: from Color(0xFF878787)
-                        Spacer(Modifier.height(12.dp))
-
-                        OrderBillSection(order)
-                    }
-
                 }
             }
         }
